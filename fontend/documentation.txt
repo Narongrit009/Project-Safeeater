@@ -1,0 +1,8 @@
+Mobile Application SafeEater
+
+    Backgroud
+        ColorCode1 : #59DFAE  #49C5F7
+        ColorCode2 : #43C4FE  #1475FF
+	ColorCode3 : #FFFFFF
+
+    Font : Kanit
