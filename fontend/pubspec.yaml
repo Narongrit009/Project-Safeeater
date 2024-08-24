@@ -40,6 +40,9 @@ dependencies:
   shared_preferences: ^2.2.3
   fluttertoast: ^8.2.6
 
+  image_picker: ^0.8.4+4
+  permission_handler: ^10.0.0
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -79,6 +82,8 @@ flutter:
     - animations/loading.json
     - animations/loading1.json
     - animations/mobile.json
+    - animations/favorites.json
+    - animations/dashboard.json
 
   uses-material-design: true
 

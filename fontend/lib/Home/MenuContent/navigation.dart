@@ -3,6 +3,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts package
 import 'package:myapp_v01/Home/MenuContent/HomeMenu/content_home.dart';
 import 'package:myapp_v01/Home/MenuContent/ProfileMenu/content_profile.dart';
+import 'package:myapp_v01/Home/MenuContent/Analyze/analyze_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class GoogleBottomBar extends StatefulWidget {
@@ -40,9 +41,11 @@ class _GoogleBottomBarState extends State<GoogleBottomBar> {
           // Use a conditional statement to show different content based on the selected index
           child: _selectedIndex == 0
               ? ContentHome()
-              : _selectedIndex == 3
-                  ? ContentProfile()
-                  : Container(),
+              : _selectedIndex == 1
+                  ? AnalyzePage() // Add this line to show AnalyzePage when _selectedIndex is 1
+                  : _selectedIndex == 3
+                      ? ContentProfile()
+                      : Container(),
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
