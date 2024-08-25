@@ -10,6 +10,8 @@ import 'package:myapp_v01/LoginApp/register_app.dart';
 import 'package:myapp_v01/LoginApp/ForgetPassword/forget_password.dart';
 import 'package:myapp_v01/Home/MenuContent/navigation.dart';
 import 'package:myapp_v01/Home/MenuContent/HomeMenu/search_page.dart';
+import 'package:myapp_v01/Home/MenuContent/HomeMenu/dashboard_page.dart';
+import 'package:myapp_v01/Home/MenuContent/HomeMenu/favorites_page.dart';
 import 'package:myapp_v01/Home/ResgisStart/intro_content.dart';
 import 'package:myapp_v01/Home/ResgisStart/data_userprofile.dart';
 
@@ -57,6 +59,8 @@ class MyApp extends StatelessWidget {
         '/introcontent': (context) => IntroContent(),
         '/userprofiles1': (context) => UserProfileStep1(),
         '/searchpage': (context) => SearchPage(),
+        '/dashboard_page': (context) => DashboardPage(),
+        '/favorites_page': (context) => FavoritesPage(),
       },
     );
   }

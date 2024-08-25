@@ -43,6 +43,8 @@ dependencies:
   image_picker: ^0.8.4+4
   permission_handler: ^10.0.0
 
+  fl_chart: ^0.68.0
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -72,6 +74,8 @@ flutter:
     - images/bg3.png
     - images/bg6.png
     - images/bg7.png
+    - images/boy.png
+    - images/aa1.png
 
     - animations/correct.json
     - animations/food.json

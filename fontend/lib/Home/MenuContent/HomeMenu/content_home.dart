@@ -130,14 +130,15 @@ class ContentHome extends StatelessWidget {
                       'ของคุณในรูปแบบแดชบอร์ด',
                       'animations/dashboard.json',
                       [Color(0xFF6C15FA), Color(0xFFFE1CF5), Color(0xFFFFF500)],
+                      () => Navigator.pushNamed(context, '/dashboard_page'),
                     ),
                     _buildCategoryCard(
                       'รายการโปรด',
                       'เมนูอาหารสุดโปรดของคุณ',
                       'animations/favorites.json',
                       [Color(0xFFFAF115), Color(0xFFFE1C7B), Color(0xFFE04F5F)],
+                      () => Navigator.pushNamed(context, '/favorites_page'),
                     ),
-                    // Add more cards here
                   ],
                 ),
               ),
@@ -198,61 +199,64 @@ class ContentHome extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryCard(
-      String title, String subtitle, String animationPath, List<Color> colors) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.0),
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+  Widget _buildCategoryCard(String title, String subtitle, String animationPath,
+      List<Color> colors, Function()? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            gradient: LinearGradient(
+              colors: colors,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8.0,
+                offset: Offset(0, 4), // เพิ่มเงาให้กับ Category Card
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8.0,
-              offset: Offset(0, 4), // เพิ่มเงาให้กับ Category Card
-            ),
-          ],
-        ),
-        padding: EdgeInsets.all(16.0),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+          padding: EdgeInsets.all(16.0),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8.0),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.0,
+                    SizedBox(height: 8.0),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            SizedBox(
-              width: 100.0, // เพิ่มขนาดแอนิเมชันให้ใหญ่ขึ้น
-              height: 100.0, // เพิ่มขนาดแอนิเมชันให้ใหญ่ขึ้น
-              child: Lottie.asset(
-                animationPath,
-                fit: BoxFit.contain,
+              SizedBox(
+                width: 100.0, // เพิ่มขนาดแอนิเมชันให้ใหญ่ขึ้น
+                height: 100.0, // เพิ่มขนาดแอนิเมชันให้ใหญ่ขึ้น
+                child: Lottie.asset(
+                  animationPath,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -280,7 +284,7 @@ class ContentHome extends StatelessWidget {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
                 image: DecorationImage(
                   image: AssetImage(
-                      'assets/images/salad.jpg'), // Replace with your image path
+                      'images/aa1.png'), // Replace with your image path
                   fit: BoxFit.cover,
                 ),
               ),
