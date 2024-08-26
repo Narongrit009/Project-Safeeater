@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
+import 'package:flutter/services.dart';
 
 class UserProfileStep1 extends StatefulWidget {
   @override
@@ -38,13 +39,16 @@ class _UserProfileStep1State extends State<UserProfileStep1> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ));
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Colors.white,
         body: SafeArea(
-          top: true,
+          top: false,
           child: Stack(
             children: [
               // Background Container
@@ -270,12 +274,15 @@ class _UserProfileStep2State extends State<UserProfileStep2> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ));
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-          top: true,
+          top: false,
           child: Stack(
             children: [
               Container(
@@ -610,12 +617,15 @@ class _UserProfileStep3State extends State<UserProfileStep3> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ));
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-          top: true,
+          top: false,
           child: Stack(
             children: [
               Container(
@@ -902,6 +912,12 @@ class _UserProfileStep3State extends State<UserProfileStep3> {
             );
           },
         );
+
+        await Future.delayed(Duration(seconds: 3));
+        // ตัวอย่างการบันทึก email ลงใน SharedPreferences หลังจาก login
+
+        // Navigate to homepage automatically
+        Navigator.pushReplacementNamed(context, '/homepage');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์')),

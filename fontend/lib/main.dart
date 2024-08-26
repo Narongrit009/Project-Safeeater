@@ -31,27 +31,27 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         textTheme: GoogleFonts.kanitTextTheme(),
       ),
-      initialRoute: '/homepage', // Start at UserProfileStep1
+      initialRoute: '/', // Start at UserProfileStep1
       routes: {
-        // '/': (context) => FutureBuilder(
-        //       future: _checkLoginStatus(),
-        //       builder: (context, snapshot) {
-        //         if (snapshot.connectionState == ConnectionState.waiting) {
-        //           return Scaffold(
-        //             body: Center(child: CircularProgressIndicator()),
-        //           );
-        //         } else {
-        //           if (snapshot.hasError) {
-        //             return Scaffold(
-        //               body: Center(child: Text('Error: ${snapshot.error}')),
-        //             );
-        //           } else {
-        //             bool isLoggedIn = snapshot.data ?? false;
-        //             return isLoggedIn ? IntroScreen2() : IntroScreen();
-        //           }
-        //         }
-        //       },
-        //     ),
+        '/': (context) => FutureBuilder(
+              future: _checkLoginStatus(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                } else {
+                  if (snapshot.hasError) {
+                    return Scaffold(
+                      body: Center(child: Text('Error: ${snapshot.error}')),
+                    );
+                  } else {
+                    bool isLoggedIn = snapshot.data ?? false;
+                    return isLoggedIn ? IntroScreen2() : IntroScreen();
+                  }
+                }
+              },
+            ),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/forgetpass': (context) => ForgotPasswordScreen(),

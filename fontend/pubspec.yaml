@@ -88,6 +88,7 @@ flutter:
     - animations/mobile.json
     - animations/favorites.json
     - animations/dashboard.json
+    - animations/logout.json
 
   uses-material-design: true
 
