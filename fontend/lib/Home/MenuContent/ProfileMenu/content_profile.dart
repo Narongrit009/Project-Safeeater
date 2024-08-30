@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:myapp_v01/Home/MenuContent/ProfileMenu/show_data_profile.dart';
+import 'package:myapp_v01/Home/MenuContent/ProfileMenu/edit_data_profile.dart';
 
 class ContentProfile extends StatefulWidget {
   const ContentProfile({Key? key}) : super(key: key);
@@ -218,32 +220,42 @@ class _ContentProfileState extends State<ContentProfile> {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 6.0,
-                          offset: Offset(0, 2),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShowDataProfile(email: email),
                         ),
-                      ],
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          'ดูข้อมูลโปรไฟล์',
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 6.0,
+                            offset: Offset(0, 2),
                           ),
-                        ),
-                        Icon(Icons.remove_red_eye, color: Colors.grey),
-                      ],
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            'ดูข้อมูลโปรไฟล์',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Icon(Icons.remove_red_eye, color: Colors.grey),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -265,37 +277,50 @@ class _ContentProfileState extends State<ContentProfile> {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 6.0,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          'แก้ไขโปรไฟล์',
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditDataProfile(
+                            email: email, // Pass email to edit screen
                           ),
                         ),
-                        Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                      ],
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 6.0,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            'แก้ไขโปรไฟล์',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+
             Spacer(),
 
             // Logout Button
