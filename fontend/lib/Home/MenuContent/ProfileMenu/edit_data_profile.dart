@@ -97,7 +97,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
           allAllergies = List<String>.from(json
               .decode(response.body)
               .map((item) => item['ingredient_name']));
-          filteredAllergies = List.from(allAllergies);
+          filteredAllergies = []; // Start with an empty list
         });
       } else {
         print('Failed to load allergies');
@@ -130,41 +130,10 @@ class _EditDataProfileState extends State<EditDataProfile> {
         if (response.statusCode == 200) {
           final result = json.decode(response.body);
           if (result['status'] == 'success') {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Lottie.asset(
-                        'animations/correct.json',
-                        width: 200,
-                        height: 200,
-                        repeat: false,
-                        reverse: false,
-                        animate: true,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'แก้ไขข้อมูลเรียบร้อย',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-
-            // Delay for 3 seconds
-            await Future.delayed(Duration(seconds: 3));
-            // ตัวอย่างการบันทึก email ลงใน SharedPreferences หลังจาก login
-
-            // Navigate to homepage automatically
-            Navigator.pushReplacementNamed(context, '/profile');
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('บันทึกข้อมูลเรียบร้อย'),
+            ));
+            Navigator.of(context).pop(); // กลับไปที่หน้าก่อนหน้า
           } else {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text('ไม่สามารถบันทึกข้อมูลได้: ${result['message']}'),
@@ -257,18 +226,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
     ));
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: const Color.fromARGB(255, 255, 255, 255)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -349,8 +307,19 @@ class _EditDataProfileState extends State<EditDataProfile> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              Spacer(), // This will push the text to the center
+            ],
+          ),
           CircleAvatar(
             radius: 50.0,
             backgroundImage: AssetImage('images/boy.png'), // Profile image
@@ -384,7 +353,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white, // Background color set to white
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
@@ -431,7 +400,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white, // Background color set to white
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
@@ -465,7 +434,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white, // Background color set to white
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
@@ -504,7 +473,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white, // Background color set to white
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
@@ -535,23 +504,24 @@ class _EditDataProfileState extends State<EditDataProfile> {
   }
 
   Widget _buildChipList(
-      String label,
-      List<String> allItems,
-      List<String> selectedItems,
-      Function(String) onAdd,
-      Function(String) onRemove) {
+    String label,
+    List<String> allItems,
+    List<String> selectedItems,
+    Function(String) onAdd,
+    Function(String) onRemove,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 8.0,
-              offset: Offset(0, 4),
+              color: Colors.grey.withOpacity(0.3),
+              blurRadius: 12.0,
+              offset: Offset(0, 6),
             ),
           ],
         ),
@@ -560,22 +530,39 @@ class _EditDataProfileState extends State<EditDataProfile> {
           children: [
             Text(
               '$label :',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
             ),
+            SizedBox(height: 8.0),
             Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
               children: selectedItems.map((item) {
                 return Chip(
-                  label: Text(item),
+                  backgroundColor: Colors.lightBlue.shade50,
+                  label: Text(
+                    item,
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                  deleteIcon: Icon(Icons.close, size: 18.0, color: Colors.red),
                   onDeleted: () => onRemove(item),
                 );
               }).toList(),
             ),
+            SizedBox(height: 12.0),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                labelText: 'เพิ่ม$label',
-                border: InputBorder.none,
+                filled: true,
+                fillColor: Colors.lightBlue.shade50,
+                labelText: 'เพิ่ม $label',
+                labelStyle: TextStyle(color: Colors.blueGrey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.add, color: Colors.blueGrey),
               ),
               items: allItems.map((String item) {
                 return DropdownMenuItem<String>(
@@ -602,12 +589,12 @@ class _EditDataProfileState extends State<EditDataProfile> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 8.0,
-              offset: Offset(0, 4),
+              color: Colors.grey.withOpacity(0.3),
+              blurRadius: 12.0,
+              offset: Offset(0, 6), // Shadow effect below the container
             ),
           ],
         ),
@@ -616,41 +603,71 @@ class _EditDataProfileState extends State<EditDataProfile> {
           children: [
             Text(
               'อาหารที่แพ้ :',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
             ),
+            SizedBox(height: 8.0),
             Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
               children: selectedAllergies.map((item) {
                 return Chip(
-                  label: Text(item),
+                  backgroundColor: Colors.lightBlue.shade50,
+                  label: Text(
+                    item,
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                  deleteIcon: Icon(Icons.close, size: 18.0, color: Colors.red),
                   onDeleted: () => _removeAllergy(item),
                 );
               }).toList(),
             ),
+            SizedBox(height: 12.0),
             TextFormField(
               controller: allergyController,
               decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.lightBlue.shade50,
                 labelText: 'เพิ่มอาหารที่แพ้',
-                border: InputBorder.none,
+                labelStyle: TextStyle(color: Colors.blueGrey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.search, color: Colors.blueGrey),
               ),
               onChanged: (value) => _filterAllergies(value),
             ),
             if (filteredAllergies.isNotEmpty)
-              Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
-                children: filteredAllergies.map((item) {
-                  return GestureDetector(
-                    onTap: () {
-                      _addAllergy(item);
-                      allergyController.clear();
-                    },
-                    child: Chip(
-                      label: Text(item),
+              Container(
+                margin: const EdgeInsets.only(top: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 12.0,
+                      offset: Offset(0, 6),
                     ),
-                  );
-                }).toList(),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: filteredAllergies.map((item) {
+                    return GestureDetector(
+                      onTap: () {
+                        _addAllergy(item);
+                        allergyController.clear();
+                      },
+                      child: ListTile(
+                        title: Text(item),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
           ],
         ),

@@ -14,7 +14,6 @@ import 'package:myapp_v01/Home/MenuContent/HomeMenu/dashboard_page.dart';
 import 'package:myapp_v01/Home/MenuContent/HomeMenu/favorites_page.dart';
 import 'package:myapp_v01/Home/ResgisStart/intro_content.dart';
 import 'package:myapp_v01/Home/ResgisStart/data_userprofile.dart';
-import 'package:myapp_v01/Home/MenuContent/ProfileMenu/content_profile.dart';
 
 void main() async {
   WidgetsFlutterBinding
@@ -62,7 +61,6 @@ class MyApp extends StatelessWidget {
         '/searchpage': (context) => SearchPage(),
         '/dashboard_page': (context) => DashboardPage(),
         '/favorites_page': (context) => FavoritesPage(),
-        '/profile': (context) => ContentProfile(),
       },
     );
   }
