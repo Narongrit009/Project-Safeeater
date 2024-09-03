@@ -13,7 +13,7 @@ class MenuDetailsPage extends StatefulWidget {
 }
 
 class _MenuDetailsPageState extends State<MenuDetailsPage> {
-  Map<String, dynamic>? menuDetails;
+  List<Map<String, dynamic>>? menuDetails;
   bool _isLoading = true;
 
   @override
@@ -34,9 +34,10 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
+
         if (result['status'] == 'success') {
           setState(() {
-            menuDetails = result['data'];
+            menuDetails = List<Map<String, dynamic>>.from(result['data']);
             _isLoading = false;
           });
         } else {
@@ -57,24 +58,177 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
     );
   }
 
+  Future<void> _showIngredientDetails(String ingredientName) async {
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_SHOW_INGREDIENTS'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{'ingredients_name': ingredientName}),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result['status'] == 'success') {
+          final ingredientDetails = result['data'][0];
+          _showIngredientDialog(ingredientDetails);
+        } else {
+          _showSnackBar('ไม่พบข้อมูลวัตถุดิบ');
+        }
+      } else {
+        _showSnackBar('ไม่สามารถดึงข้อมูลวัตถุดิบได้');
+      }
+    } catch (error) {
+      _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      print('Error fetching ingredient details: $error');
+    }
+  }
+
+  void _showIngredientDialog(Map<String, dynamic> ingredientDetails) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        blurRadius: 10.0,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                    gradient: LinearGradient(
+                      colors: [Colors.lightBlueAccent, Colors.blueAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Image.network(
+                      '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(ingredientDetails['image_url'])}',
+                      height: 100.0,
+                      width: 100.0,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                Text(
+                  '${ingredientDetails['ingredient_name']} ${ingredientDetails['quantity_per_unit']} กรัม',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20.0),
+                Divider(color: Colors.grey[300]),
+                _buildNutritionRow(
+                    'พลังงาน', '${ingredientDetails['calories']} แคลอรี่'),
+                _buildNutritionRow(
+                    'โปรตีน', '${ingredientDetails['protien']} กรัม'),
+                _buildNutritionRow('คาร์โบไฮเดรต',
+                    '${ingredientDetails['carbohydrates']} กรัม'),
+                _buildNutritionRow('ไขมัน', '${ingredientDetails['fat']} กรัม'),
+                _buildNutritionRow(
+                    'ใยอาหาร', '${ingredientDetails['dietary_fiber']} กรัม'),
+                _buildNutritionRow(
+                    'แคลเซียม', '${ingredientDetails['calcium']} มิลลิกรัม'),
+                _buildNutritionRow(
+                    'เหล็ก', '${ingredientDetails['iron']} มิลลิกรัม'),
+                _buildNutritionRow(
+                    'วิตามินซี', '${ingredientDetails['vitamin_c']} มิลลิกรัม'),
+                _buildNutritionRow(
+                    'โซเดียม', '${ingredientDetails['sodium']} มิลลิกรัม'),
+                SizedBox(height: 20.0),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
+                  ),
+                  child: Text(
+                    'ปิด',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNutritionRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '$label :',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+              fontSize: 18.0,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 18.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : menuDetails == null
+          : menuDetails == null || menuDetails!.isEmpty
               ? Center(child: Text('ไม่พบรายละเอียดเมนู'))
               : _buildMenuDetails(),
     );
   }
 
   Widget _buildMenuDetails() {
-    final menuName = menuDetails!['menu_name'] ?? 'No Name';
-    final imageUrl = menuDetails!['image_url'] ?? '';
-    final ingredients = menuDetails!['ingredients']?.split(', ') ?? [];
-    final ingredientImages =
-        menuDetails!['ingredients_image']?.split(', ') ?? [];
+    final menu = menuDetails![0];
+    final menuName = menu['menu_name'] ?? 'No Name';
+    final imageUrl = menu['image_url'] ?? '';
+    final ingredients = menu['ingredients']?.split(', ') ?? [];
+    final ingredientImages = menu['ingredients_image']?.split(', ') ?? [];
 
     return Stack(
       children: [
@@ -82,7 +236,6 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Container with background image
               Container(
                 padding: const EdgeInsets.fromLTRB(16.0, 48.0, 16.0, 120.0),
                 decoration: BoxDecoration(
@@ -134,8 +287,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                   ],
                 ),
               ),
-              SizedBox(
-                  height: 60.0), // Space to accommodate the overlapping image
+              SizedBox(height: 60.0),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
@@ -148,48 +300,62 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                 ),
               ),
               SizedBox(height: 16.0),
-              // Ingredients list with scrollable horizontal list
               Container(
                 height: 100.0,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: ingredients.length,
                   itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 60.0,
-                            height: 60.0,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  blurRadius: 10.0,
-                                  offset: Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12.0),
-                              child: Image.network(
-                                '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(ingredientImages[index])}',
-                                fit: BoxFit.cover,
+                    // Check if the current index is within the bounds of ingredientImages
+                    String imageUrl = (index < ingredientImages.length)
+                        ? ingredientImages[index]
+                        : ''; // Use a placeholder or empty string if no image exists
+
+                    return GestureDetector(
+                      onTap: () {
+                        _showIngredientDetails(ingredients[index]);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 60.0,
+                              height: 60.0,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    blurRadius: 10.0,
+                                    offset: Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12.0),
+                                child: imageUrl.isNotEmpty
+                                    ? Image.network(
+                                        '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'images/placeholder.png', // Placeholder image in case of missing URL
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: 4.0),
-                          Text(
-                            ingredients[index],
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              color: Colors.black,
+                            SizedBox(height: 4.0),
+                            Text(
+                              ingredients[index],
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.black,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -211,23 +377,22 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'รายละเอียดของ $menuName ประกอบด้วยวัตถุดิบหลักๆ คือ ${ingredients.join(', ')}',
+                  ingredients.isNotEmpty
+                      ? 'รายละเอียดของ $menuName ประกอบด้วยวัตถุดิบหลักๆ คือ ${ingredients.join(', ')}'
+                      : 'ไม่มีข้อมูลวัตถุดิบสำหรับเมนูนี้',
                   style: TextStyle(
                     fontSize: 16.0,
                     color: Colors.black,
                   ),
                 ),
               ),
-              SizedBox(height: 80.0), // Add space for floating button
+              SizedBox(height: 80.0),
             ],
           ),
         ),
-        // Overlapping Menu Image
-        // Overlapping Menu Image
         Positioned(
-          top: 120.0, // Adjust the top position as needed
-          left: MediaQuery.of(context).size.width / 2 -
-              100.0, // Adjust for centering the larger image
+          top: 120.0,
+          left: MediaQuery.of(context).size.width / 2 - 100.0,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -240,7 +405,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
               ],
             ),
             child: CircleAvatar(
-              radius: 100.0, // Increase this value to make the image larger
+              radius: 100.0,
               backgroundImage: NetworkImage(
                 '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
               ),

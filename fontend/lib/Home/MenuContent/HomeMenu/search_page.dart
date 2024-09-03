@@ -276,7 +276,7 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     return GridView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 16.0,
@@ -301,46 +301,87 @@ class _SearchPageState extends State<SearchPage> {
             );
           },
           child: Card(
-            elevation: 4.0,
+            elevation: 6.0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+              borderRadius: BorderRadius.circular(16.0),
             ),
+            shadowColor: Colors.black.withOpacity(0.25),
+            color: Colors.white, // Background color of the card
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
                   child: ClipRRect(
                     borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(12.0)),
-                    child: Image.network(
-                      proxyUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) {
-                          return child;
-                        } else {
-                          return Center(child: CircularProgressIndicator());
-                        }
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(Icons.error, color: Colors.red),
-                        );
-                      },
+                        BorderRadius.vertical(top: Radius.circular(16.0)),
+                    child: Stack(
+                      children: [
+                        Container(
+                          color: Colors
+                              .grey[200], // Background color of the image area
+                          child: Image.network(
+                            proxyUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) {
+                                return child;
+                              } else {
+                                return Center(
+                                    child: CircularProgressIndicator());
+                              }
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Icon(Icons.error,
+                                    color: Colors.red, size: 40.0),
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          right: 8.0,
+                          top: 8.0,
+                          child: Container(
+                            padding: EdgeInsets.all(6.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: Icon(
+                              Icons.favorite_border,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Text(
                     food['menu_name'] ?? 'No Name',
                     style: TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Text(
+                    'เมนูอาหารภาคเหนือ', // Additional subtitle or category (optional)
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.grey,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(height: 10.0), // Adds some space at the bottom
               ],
             ),
           ),
