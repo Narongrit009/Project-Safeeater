@@ -89,6 +89,8 @@ flutter:
     - animations/favorites.json
     - animations/dashboard.json
     - animations/logout.json
+    - animations/alert.json
+    - animations/insert_history.json
 
   uses-material-design: true
 

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
 
 class MenuDetailsPage extends StatefulWidget {
   final int menuId;
@@ -47,8 +48,13 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
         if (response.statusCode == 200) {
           final result = jsonDecode(response.body);
           if (result['status'] == 'success') {
+            // Store user_id in SharedPreferences
+            int userId = result['data']
+                ['user_id']; // assuming user_id is part of the response
+            await prefs.setInt('user_id', userId);
+
+            // Casting dynamic list to List<String> for food allergies
             setState(() {
-              // Casting dynamic list to List<String>
               foodAllergies = List<String>.from(result['data']['food_allergies']
                   .split(', ')
                   .map((e) => e.trim()));
@@ -112,6 +118,127 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
         }
       }
     }
+  }
+
+  Future<void> _insertMealHistory(String isEdible) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      int? userId =
+          prefs.getInt('user_id'); // Fetching user_id from SharedPreferences
+      if (userId == null) {
+        _showSnackBar('ไม่พบ user_id ในระบบ');
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_INSERT_MEAL_HISTORY'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'user_id': userId,
+          'menu_id': widget.menuId,
+          'is_edible': isEdible,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          _showSnackBar('บันทึกประวัติอาหารสำเร็จ');
+        } else {
+          _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        }
+      } else {
+        _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+      }
+    } catch (error) {
+      _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      print('Error inserting meal history: $error');
+    }
+  }
+
+  Future<void> _showConfirmationDialog(
+      {required String isEdible, required String message}) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // Prevent closing the dialog by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white, // Set the background color to white
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // Rounded corners
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Lottie animation with looping behavior
+              Lottie.asset(
+                isEdible == 'true'
+                    ? 'animations/insert_history.json' // Animation for no allergen conflict
+                    : 'animations/alert.json', // Animation for allergen conflict
+                width: 150,
+                height: 150,
+                repeat: true, // Looping animation
+                reverse: false,
+                animate: true,
+              ),
+              SizedBox(height: 16),
+              // Custom text styling
+              Text(
+                isEdible == 'true'
+                    ? 'คุณต้องการเพิ่มเมนูนี้\nในประวัติอาหารของคุณหรือไม่?'
+                    : '$message ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors
+                      .black, // Text color set to black for better readability
+                ),
+              ),
+              SizedBox(height: 16),
+              // Improved button styling
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white, // Text color
+                      backgroundColor: Colors.redAccent, // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: Text('ยกเลิก'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                  ),
+                  SizedBox(width: 10),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white, // Text color
+                      backgroundColor: Colors.green, // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: Text('ยืนยัน'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                      _insertMealHistory(
+                          isEdible); // Proceed with adding meal history
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showSnackBar(String message) {
@@ -445,16 +572,21 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                 ),
               ],
             ),
+            // Inside the button
             child: IconButton(
               icon: Icon(Icons.add, color: Colors.white, size: 40.0),
-              onPressed: matchingAllergen != null
-                  ? () {
-                      _showSnackBar(
-                          'ไม่สามารถเพิ่มเมนูนี้ได้เนื่องจากมีวัตถุดิบที่คุณแพ้');
-                    }
-                  : () {
-                      // Implement add to meal plan logic
-                    },
+              onPressed: () {
+                // Show confirmation dialog based on whether there's an allergy conflict or not
+                matchingAllergen != null
+                    ? _showConfirmationDialog(
+                        isEdible: 'false',
+                        message:
+                            'จานนี้มีส่วนผสมของ $matchingAllergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?')
+                    : _showConfirmationDialog(
+                        isEdible: 'true',
+                        message:
+                            'คุณต้องการเพิ่มเมนูนี้ในประวัติอาหารของคุณหรือไม่?');
+              },
             ),
           ),
         ),
