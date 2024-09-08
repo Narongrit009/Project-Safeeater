@@ -145,7 +145,57 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         if (result['status'] == 'success') {
-          _showSnackBar('บันทึกประวัติอาหารสำเร็จ');
+          // Display success confirmation dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent closing by tapping outside
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.white, // White background for clarity
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Success animation using Lottie
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 150,
+                      height: 150,
+                      repeat: false,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'บันทึกเมนูอาหารสำเร็จ!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // Text color for success
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+
+          // Delay for 2 seconds to allow user to see the success message
+          await Future.delayed(Duration(seconds: 3));
+
+          // Close the dialog and return to the previous screen
+          Navigator.of(context).pop(); // Close the success dialog
+          Navigator.of(context).pop(); // Go back to the previous page
         } else {
           _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
@@ -401,11 +451,18 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                               ),
                             ),
                             SizedBox(height: 4.0),
-                            Text(
-                              ingredients[index],
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.black,
+                            Container(
+                              width: 60.0, // ความกว้างเท่ากับ Container ด้านบน
+                              child: Text(
+                                ingredients[index],
+                                overflow: TextOverflow
+                                    .ellipsis, // เพิ่มการตัดข้อความเป็น ...
+                                maxLines: 1, // กำหนดให้แสดงแค่บรรทัดเดียว
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center, // จัดตำแหน่งกลาง
                               ),
                             ),
                           ],
@@ -522,74 +579,84 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
             ],
           ),
         ),
-        Positioned(
-          top: 120.0,
-          left: MediaQuery.of(context).size.width / 2 - 100.0,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 15.0,
-                  offset: Offset(0, 8),
-                ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 100.0,
-              backgroundImage: NetworkImage(
-                '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
-              ),
-              backgroundColor: Colors.transparent,
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0.0,
-          left: MediaQuery.of(context).size.width / 2 - 40.0,
-          child: Container(
-            width: 80.0,
-            height: 80.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: matchingAllergen != null
-                  ? LinearGradient(
-                      colors: [Colors.redAccent, Colors.red],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : LinearGradient(
-                      colors: [Color(0xFF59DFAE), Color(0xFF74FF07)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+        Stack(
+          children: [
+            Positioned(
+              top: 120.0,
+              left: MediaQuery.of(context).size.width / 2 - 100.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15.0,
+                      offset: Offset(0, 8),
                     ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8.0,
-                  offset: Offset(0, 4),
+                  ],
                 ),
-              ],
+                child: CircleAvatar(
+                  radius: 100.0,
+                  backgroundImage: NetworkImage(
+                    '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
+                  ),
+                  backgroundColor: Colors.transparent,
+                ),
+              ),
             ),
-            // Inside the button
-            child: IconButton(
-              icon: Icon(Icons.add, color: Colors.white, size: 40.0),
-              onPressed: () {
-                // Show confirmation dialog based on whether there's an allergy conflict or not
-                matchingAllergen != null
-                    ? _showConfirmationDialog(
-                        isEdible: 'false',
-                        message:
-                            'จานนี้มีส่วนผสมของ $matchingAllergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?')
-                    : _showConfirmationDialog(
-                        isEdible: 'true',
-                        message:
-                            'คุณต้องการเพิ่มเมนูนี้ในประวัติอาหารของคุณหรือไม่?');
-              },
+            // เนื้อหาอื่นๆ ที่จะซ้อนด้านล่างปุ่ม
+            Positioned(
+              bottom: 16.0, // ติดขอบล่าง
+              left: 16.0,
+              right: 16.0,
+              child: Container(
+                width: double.infinity,
+                height: 60.0, // ปรับขนาดปุ่มเพื่อให้ใหญ่ขึ้น
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
+                  gradient: LinearGradient(
+                    colors: matchingAllergen != null
+                        ? [Colors.redAccent, Colors.red]
+                        : [Color(0xFF59DFAE), Color(0xFF74FF07)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    matchingAllergen != null
+                        ? _showConfirmationDialog(
+                            isEdible: 'false',
+                            message:
+                                'จานนี้มีส่วนผสมของ $matchingAllergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?')
+                        : _showConfirmationDialog(
+                            isEdible: 'true',
+                            message:
+                                'คุณต้องการเพิ่มเมนูนี้ในประวัติอาหารของคุณหรือไม่?');
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: Text(
+                      'เพิ่มไปยังประวัติการรับประทาน',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          ],
+        )
       ],
     );
   }

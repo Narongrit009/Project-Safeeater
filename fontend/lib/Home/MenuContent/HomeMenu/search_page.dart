@@ -20,6 +20,41 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadSearchHistory();
+    _fetchInitialMenu(); // Fetch the first 10 menus when the page opens
+  }
+
+  Future<void> _fetchInitialMenu() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+            dotenv.env['API_URL_GET_INITIAL_FOOD'] ?? ''), // Adjust this URL
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result['status'] == 'success') {
+          setState(() {
+            _searchResults = List<Map<String, dynamic>>.from(result['data']);
+          });
+        } else {
+          _showSnackBar('ไม่พบข้อมูลเมนูเริ่มต้น');
+        }
+      } else {
+        _showSnackBar('การดึงข้อมูลเมนูเริ่มต้นล้มเหลว');
+      }
+    } catch (error) {
+      _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      print('Error fetching initial menu data: $error');
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _loadSearchHistory() async {
@@ -171,7 +206,7 @@ class _SearchPageState extends State<SearchPage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'ค้นหาเมนูอาหารหรือวัตถุดิบ',
+                        hintText: 'ค้นหาเมนูอาหาร',
                         border: InputBorder.none,
                       ),
                       onSubmitted: _performSearch,
@@ -373,14 +408,15 @@ class _SearchPageState extends State<SearchPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Text(
-                    'เมนูอาหารภาคเหนือ', // Additional subtitle or category (optional)
+                    'ประเภท: ${food['category_name'] ?? 'No Name'}', // เพิ่มคำว่า "ประเภท : " ข้างหน้า
                     style: TextStyle(
                       fontSize: 14.0,
                       color: Colors.grey,
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis, // ตัดข้อความถ้ายาวเกิน
                   ),
                 ),
+
                 SizedBox(height: 10.0), // Adds some space at the bottom
               ],
             ),

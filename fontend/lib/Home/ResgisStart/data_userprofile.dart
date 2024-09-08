@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
-import 'package:flutter/services.dart';
 
 class UserProfileStep1 extends StatefulWidget {
   @override
@@ -886,26 +885,41 @@ class _UserProfileStep3State extends State<UserProfileStep3> {
       if (response.statusCode == 200) {
         showDialog(
           context: context,
+          barrierDismissible: false, // Prevent closing by tapping outside
           builder: (BuildContext context) {
             return AlertDialog(
+              backgroundColor: Colors.white, // White background for clarity
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Success animation using Lottie
                   Lottie.asset(
                     'animations/correct.json',
-                    width: 200,
-                    height: 200,
+                    width: 150,
+                    height: 150,
                     repeat: false,
-                    reverse: false,
-                    animate: true,
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'บันทึกข้อมูลเรียบร้อย',
+                    'บันทึกข้อมูลเรียบร้อย!',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.green, // Text color for success
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

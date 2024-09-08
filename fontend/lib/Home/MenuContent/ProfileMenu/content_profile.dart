@@ -129,8 +129,12 @@ class _ContentProfileState extends State<ContentProfile> {
                       SharedPreferences prefs =
                           await SharedPreferences.getInstance();
                       await prefs.clear(); // ลบข้อมูลใน Local Storage
-                      Navigator.of(context)
-                          .pushReplacementNamed('/login'); // ไปยังหน้า login
+
+                      // ไปยังหน้า Login และป้องกันการย้อนกลับ
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/login',
+                        (Route<dynamic> route) => false,
+                      );
                     },
                     child: Text(
                       'ตกลง',

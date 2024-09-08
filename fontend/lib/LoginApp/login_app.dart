@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -74,11 +75,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'ยินดีต้อนรับเข้าสู่ระบบ',
+                    'เข้าสู่ระบบเรียบร้อยแล้ว',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.green, // Text color for success
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'ระบบได้เข้าสู่ระบบของคุณเรียบร้อยแล้ว',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

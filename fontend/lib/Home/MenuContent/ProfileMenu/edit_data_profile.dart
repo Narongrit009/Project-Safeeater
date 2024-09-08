@@ -130,9 +130,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
         if (response.statusCode == 200) {
           final result = json.decode(response.body);
           if (result['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('บันทึกข้อมูลเรียบร้อย'),
-            ));
+            _showSnackBar('แก้ไขข้อมูลเรียบร้อยแล้ว');
             Navigator.of(context).pop(); // กลับไปที่หน้าก่อนหน้า
           } else {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -146,6 +144,42 @@ class _EditDataProfileState extends State<EditDataProfile> {
         print('Error saving profile data: $error');
       }
     }
+  }
+
+  void _showSnackBar(String message) {
+    final snackBar = SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.check_circle, // เพิ่มไอคอน
+            color: Colors.white,
+            size: 28.0,
+          ),
+          SizedBox(width: 12.0), // ระยะห่างระหว่างไอคอนกับข้อความ
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center, // ทำให้ข้อความอยู่ตรงกลาง
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.greenAccent[700], // พื้นหลังสีเขียวเข้ม
+      behavior: SnackBarBehavior.floating, // SnackBar แบบลอย
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24.0),
+      ),
+      elevation: 8, // เพิ่มเงาให้กับ SnackBar
+      duration: Duration(seconds: 3), // แสดงผลเป็นเวลา 3 วินาที
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   String _getFieldValueAsString(String field) {

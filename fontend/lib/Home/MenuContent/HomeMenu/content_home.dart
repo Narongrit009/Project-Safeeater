@@ -173,7 +173,7 @@ class _ContentHomeState extends State<ContentHome> {
             SizedBox(width: 8.0),
             Expanded(
               child: Text(
-                'ค้นหาเมนูอาหารหรือวัตถุดิบ',
+                'ค้นหาเมนูอาหาร',
                 style: TextStyle(color: Colors.grey),
               ),
             ),
