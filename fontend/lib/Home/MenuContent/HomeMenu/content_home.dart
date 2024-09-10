@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
+import 'food_detail.dart';
+import 'recommend_health_menu.dart';
 
 class ContentHome extends StatefulWidget {
   const ContentHome({Key? key}) : super(key: key);
@@ -17,6 +19,7 @@ class _ContentHomeState extends State<ContentHome> {
   String username =
       "Guest"; // Default value until API returns the actual username
   bool _isLoading = true;
+  List<dynamic> recommendedMenus = []; // Store recommended menus here
 
   @override
   void initState() {
@@ -29,7 +32,8 @@ class _ContentHomeState extends State<ContentHome> {
     String? email = prefs.getString('email');
 
     if (email != null) {
-      _fetchUserProfile(email);
+      await _fetchUserProfile(email);
+      await _fetchRecommendedMenu(email);
     } else {
       setState(() {
         _isLoading = false; // Stop loading if no email is found
@@ -52,20 +56,35 @@ class _ContentHomeState extends State<ContentHome> {
         if (responseData['status'] == 'success') {
           setState(() {
             username = responseData['data']['username'];
-            _isLoading = false;
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
           });
         }
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (error) {
       print('Error fetching profile data: $error');
+    }
+  }
+
+  Future<void> _fetchRecommendedMenu(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_SHOW_RECOMMEND_MENU'] ?? ''),
+        body: jsonEncode(<String, String>{'email': email}),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['status'] == 'success') {
+          setState(() {
+            recommendedMenus = responseData['data'];
+          });
+        }
+      }
+    } catch (error) {
+      print('Error fetching recommended menus: $error');
+    } finally {
       setState(() {
         _isLoading = false;
       });
@@ -165,8 +184,7 @@ class _ContentHomeState extends State<ContentHome> {
             ),
           ],
         ),
-        padding: EdgeInsets.symmetric(
-            horizontal: 16.0, vertical: 16.0), // Increase vertical padding
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
         child: Row(
           children: <Widget>[
             Icon(Icons.search, color: Colors.grey),
@@ -243,6 +261,12 @@ class _ContentHomeState extends State<ContentHome> {
               TextButton(
                 onPressed: () {
                   // Implement navigation to see all menus
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecommendHealthMenuPage(),
+                    ),
+                  );
                 },
                 child: Text(
                   'ดูทั้งหมด',
@@ -255,22 +279,30 @@ class _ContentHomeState extends State<ContentHome> {
             ],
           ),
         ),
+        SizedBox(height: 12.0),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16.0,
-              mainAxisSpacing: 16.0,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: 4,
-            itemBuilder: (context, index) {
-              return _buildMenuItem(context);
-            },
-          ),
+          child: recommendedMenus.isNotEmpty
+              ? GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16.0,
+                    mainAxisSpacing: 16.0,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: recommendedMenus.length > 4
+                      ? 4
+                      : recommendedMenus.length, // Display only 4 items
+                  itemBuilder: (context, index) {
+                    final menu = recommendedMenus[index];
+                    return _buildMenuItem(menu);
+                  },
+                )
+              : Center(
+                  child: Text('ไม่มีเมนูแนะนำ'),
+                ),
         ),
       ],
     );
@@ -339,51 +371,152 @@ class _ContentHomeState extends State<ContentHome> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8.0,
-            offset: Offset(0, 4),
+  Widget _buildMenuItem(dynamic menu) {
+    final imageUrl = menu['image_url'];
+    final proxyUrl =
+        '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}';
+
+    return GestureDetector(
+      onTap: () {
+        // Optionally, you can navigate to a detailed page or perform an action when tapping the item
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MenuDetailsPage(menuId: menu['menu_id']),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-                image: DecorationImage(
-                  image: AssetImage(
-                      'images/aa1.png'), // Replace with your image path
-                  fit: BoxFit.cover,
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 8.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10.0,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Image section with rounded corners and shadow
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20.0)),
+                  image: DecorationImage(
+                    image: NetworkImage(proxyUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // A gradient overlay to improve text visibility
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20.0)),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black.withOpacity(0.4),
+                              Colors.transparent,
+                            ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Category name displayed on the top-left corner
+                    Positioned(
+                      top: 8.0,
+                      left: 8.0,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 6.0),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Text(
+                          menu['category_name'] ?? '',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  'ผัดผักรวมมิตร',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
+            // Menu name and favorite icon section
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    menu['menu_name'] ?? '',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Icon(Icons.favorite_border, color: Colors.grey),
-              ],
+                  SizedBox(height: 4.0),
+                  Text(
+                    'เมนูสุขภาพ',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'ดูรายละเอียด',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                      // Add favorite icon with a ripple effect when tapped
+                      GestureDetector(
+                        onTap: () {
+                          // Handle favorite action here
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.favorite_border,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

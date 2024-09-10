@@ -239,7 +239,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
               Text(
                 isEdible == 'true'
                     ? 'คุณต้องการเพิ่มเมนูนี้\nในประวัติอาหารของคุณหรือไม่?'
-                    : '$message ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?',
+                    : '$message',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -589,9 +589,9 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 15.0,
-                      offset: Offset(0, 8),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 25.0,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
