@@ -327,7 +327,6 @@ class _SearchPageState extends State<SearchPage> {
 
         return GestureDetector(
           onTap: () {
-            // Navigate to food_detail.dart, passing the menu_id
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -335,89 +334,69 @@ class _SearchPageState extends State<SearchPage> {
               ),
             );
           },
-          child: Card(
-            elevation: 6.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+          child: Container(
+            margin: const EdgeInsets.only(
+                bottom: 16.0), // Add margin at the bottom to create space
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0), // Rounded corners
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6.0,
+                  offset: Offset(0, 4), // Shadow for the grid items
+                ),
+              ],
             ),
-            shadowColor: Colors.black.withOpacity(0.25),
-            color: Colors.white, // Background color of the card
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
-                  child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16.0)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          color: Colors
-                              .grey[200], // Background color of the image area
-                          child: Image.network(
-                            proxyUrl,
+                  child: Stack(
+                    children: <Widget>[
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(12.0)),
+                          image: DecorationImage(
+                            image: NetworkImage(proxyUrl),
                             fit: BoxFit.cover,
-                            width: double.infinity,
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) {
-                                return child;
-                              } else {
-                                return Center(
-                                    child: CircularProgressIndicator());
-                              }
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Icon(Icons.error,
-                                    color: Colors.red, size: 40.0),
-                              );
-                            },
                           ),
                         ),
-                        Positioned(
-                          right: 8.0,
-                          top: 8.0,
-                          child: Container(
-                            padding: EdgeInsets.all(6.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: Icon(
-                              Icons.favorite_border,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        top: 8.0,
+                        right: 8.0,
+                        child: Icon(Icons.favorite_border,
+                            color: Colors.redAccent),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    food['menu_name'] ?? 'No Name',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  padding: const EdgeInsets.fromLTRB(
+                      8.0, 8.0, 8.0, 16.0), // Increase bottom padding
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        food['menu_name'] ?? 'ชื่อเมนู',
+                        style: TextStyle(
+                          fontSize: 14.0, // Font size for the menu name
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4.0),
+                      Text(
+                        'ประเภท: ${food['category_name'] ?? 'ไม่ระบุ'}',
+                        style: TextStyle(
+                          fontSize: 12.0, // Font size for the category
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(
-                    'ประเภท: ${food['category_name'] ?? 'No Name'}', // เพิ่มคำว่า "ประเภท : " ข้างหน้า
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.grey,
-                    ),
-                    overflow: TextOverflow.ellipsis, // ตัดข้อความถ้ายาวเกิน
-                  ),
-                ),
-
-                SizedBox(height: 10.0), // Adds some space at the bottom
               ],
             ),
           ),

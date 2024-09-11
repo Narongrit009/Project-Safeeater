@@ -166,6 +166,7 @@ class _RecommendHealthMenuPageState extends State<RecommendHealthMenuPage> {
         );
       },
       child: Container(
+        margin: const EdgeInsets.only(bottom: 16.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius:

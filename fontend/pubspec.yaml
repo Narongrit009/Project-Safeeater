@@ -40,11 +40,14 @@ dependencies:
   shared_preferences: ^2.2.3
   fluttertoast: ^8.2.6
 
+  file_picker: ^5.0.0
   image_picker: ^0.8.4+4
   permission_handler: ^10.0.0
 
   intl: ^0.17.0
   fl_chart: ^0.68.0
+  google_generative_ai: ^0.4.6
+  flutter_gemini: ^2.0.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -77,6 +80,7 @@ flutter:
     - images/bg7.png
     - images/boy.png
     - images/aa1.png
+    - images/food-a1.jpg
 
     - animations/correct.json
     - animations/food.json
@@ -93,6 +97,7 @@ flutter:
     - animations/alert.json
     - animations/insert_history.json
     - animations/delete.json
+    - animations/analyze.json
 
   uses-material-design: true
 

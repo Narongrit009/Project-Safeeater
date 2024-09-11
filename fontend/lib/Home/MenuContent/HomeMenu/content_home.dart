@@ -378,7 +378,6 @@ class _ContentHomeState extends State<ContentHome> {
 
     return GestureDetector(
       onTap: () {
-        // Optionally, you can navigate to a detailed page or perform an action when tapping the item
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -387,130 +386,63 @@ class _ContentHomeState extends State<ContentHome> {
         );
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0),
+        margin: const EdgeInsets.only(
+            bottom: 16.0), // Add margin at the bottom to create space
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(12.0), // Rounded corners
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10.0,
-              offset: Offset(0, 5),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 6.0,
+              offset: Offset(0, 4), // Shadow for the grid items
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // Image section with rounded corners and shadow
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(20.0)),
-                  image: DecorationImage(
-                    image: NetworkImage(proxyUrl),
-                    fit: BoxFit.cover,
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(12.0)),
+                      image: DecorationImage(
+                        image: NetworkImage(proxyUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    // A gradient overlay to improve text visibility
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(20.0)),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black.withOpacity(0.4),
-                              Colors.transparent,
-                            ],
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Category name displayed on the top-left corner
-                    Positioned(
-                      top: 8.0,
-                      left: 8.0,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12.0, vertical: 6.0),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Text(
-                          menu['category_name'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  Positioned(
+                    top: 8.0,
+                    right: 8.0,
+                    child: Icon(Icons.favorite_border, color: Colors.redAccent),
+                  ),
+                ],
               ),
             ),
-            // Menu name and favorite icon section
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.fromLTRB(
+                  8.0, 8.0, 8.0, 16.0), // Increase bottom padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    menu['menu_name'] ?? '',
+                    menu['menu_name'] ?? 'ชื่อเมนู',
                     style: TextStyle(
-                      fontSize: 18.0,
+                      fontSize: 14.0, // Font size for the menu name
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 4.0),
                   Text(
-                    'เมนูสุขภาพ',
+                    'ประเภท: ${menu['category_name'] ?? 'ไม่ระบุ'}',
                     style: TextStyle(
-                      fontSize: 14.0,
+                      fontSize: 12.0, // Font size for the category
                       color: Colors.grey,
                     ),
-                  ),
-                  SizedBox(height: 8.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        'ดูรายละเอียด',
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blueAccent,
-                        ),
-                      ),
-                      // Add favorite icon with a ripple effect when tapped
-                      GestureDetector(
-                        onTap: () {
-                          // Handle favorite action here
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.favorite_border,
-                            color: Colors.redAccent,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

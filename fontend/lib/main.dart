@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 
 import 'package:myapp_v01/LoginApp/intro_screen.dart';
 import 'package:myapp_v01/LoginApp/intro_screen2.dart';
@@ -19,6 +20,7 @@ void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); // Ensure binding is initialized before calling runApp
   await dotenv.load(fileName: ".env");
+  Gemini.init(apiKey: dotenv.env['GEMINI_API_KEY']!);
   runApp(MyApp());
 }
 
