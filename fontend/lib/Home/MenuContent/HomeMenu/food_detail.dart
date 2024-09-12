@@ -445,7 +445,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                                         fit: BoxFit.cover,
                                       )
                                     : Image.asset(
-                                        'images/placeholder.png',
+                                        'images/secret_ingredients.png',
                                         fit: BoxFit.cover,
                                       ),
                               ),

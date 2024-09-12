@@ -81,6 +81,7 @@ flutter:
     - images/boy.png
     - images/aa1.png
     - images/food-a1.jpg
+    - images/secret_ingredients.png
 
     - animations/correct.json
     - animations/food.json

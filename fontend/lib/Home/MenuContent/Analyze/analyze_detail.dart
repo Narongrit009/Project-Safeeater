@@ -4,10 +4,18 @@ import 'dart:io'; // For handling file images (not needed for web)
 
 class AnalyzeDetailsPage extends StatelessWidget {
   final String dishName; // The result of the analysis (name of the dish)
+  final List<String> ingredients; // List of ingredients
+  final List<String> diseaseRisks; // List of disease risks
   final Uint8List? webImage; // Image bytes for web
   final File? imageFile; // Image file for non-web platforms
 
-  AnalyzeDetailsPage({required this.dishName, this.webImage, this.imageFile});
+  AnalyzeDetailsPage({
+    required this.dishName,
+    required this.ingredients, // รับพารามิเตอร์ ingredients
+    required this.diseaseRisks, // รับพารามิเตอร์ diseaseRisks
+    this.webImage,
+    this.imageFile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +54,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                           IconButton(
                             icon: Icon(Icons.arrow_back, color: Colors.white),
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                           ),
                           IconButton(
@@ -78,7 +86,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 60.0),
+                SizedBox(height: 80.0),
 
                 // Ingredient Section
                 Padding(
@@ -97,7 +105,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   height: 100.0,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: 5, // Adjust this based on actual data
+                    itemCount: ingredients.length, // ใช้จำนวนวัตถุดิบ
                     itemBuilder: (context, index) {
                       return GestureDetector(
                         onTap: () {
@@ -124,7 +132,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12.0),
                                   child: Image.asset(
-                                    'images/ingredient_placeholder.png', // Placeholder image
+                                    'images/secret_ingredients.png', // Placeholder image
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -133,7 +141,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                               Container(
                                 width: 60.0,
                                 child: Text(
-                                  'Ingredient $index',
+                                  ingredients[index], // แสดงชื่อวัตถุดิบ
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: TextStyle(
@@ -151,7 +159,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   ),
                 ),
 
-                // Additional details
+                // Additional details about ingredients
                 SizedBox(height: 24.0),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -168,7 +176,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'รายละเอียดของ $dishName ประกอบด้วยวัตถุดิบหลักๆ คือ ...',
+                    'รายละเอียดของ $dishName ประกอบด้วยวัตถุดิบหลักๆ คือ ${ingredients.join(', ')}',
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Colors.black.withOpacity(0.8),
@@ -176,7 +184,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   ),
                 ),
 
-                // Potential health risks
+                // Disease Risk Section
                 SizedBox(height: 24.0),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -185,7 +193,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 22.0,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.black, // สีแดงสำหรับเน้นโรคที่เสี่ยง
                     ),
                   ),
                 ),
@@ -194,34 +202,32 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(2, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Disease $index: ',
+                    children: diseaseRisks.isEmpty
+                        ? [
+                            Text(
+                              'ไม่พบข้อมูลโรคที่เสี่ยง',
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black.withOpacity(0.8),
+                              ),
+                            ),
+                          ]
+                        : diseaseRisks.map((disease) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Text(
+                                '- $disease', // แสดงรายการโรคที่เสี่ยง
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
                                   fontSize: 16.0,
                                   color: Colors.black.withOpacity(0.8),
                                 ),
                               ),
-                              TextSpan(
-                                text: 'รายละเอียดของโรคนี้...',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  color: Colors.black.withOpacity(0.8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
+                            );
+                          }).toList(),
                   ),
                 ),
+
                 SizedBox(height: 80.0),
               ],
             ),
@@ -229,7 +235,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
           Stack(
             children: [
               Positioned(
-                top: 120.0,
+                top: 140.0,
                 left: MediaQuery.of(context).size.width / 2 - 100.0,
                 child: Container(
                   decoration: BoxDecoration(
@@ -248,7 +254,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                         ? MemoryImage(webImage!) // Web Image
                         : imageFile != null
                             ? FileImage(imageFile!) // Mobile Image
-                            : AssetImage('images/placeholder.png')
+                            : AssetImage('images/secret_ingredients.png')
                                 as ImageProvider,
                     backgroundColor: Colors.transparent,
                   ),

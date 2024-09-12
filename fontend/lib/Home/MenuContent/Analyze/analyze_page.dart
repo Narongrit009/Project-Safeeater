@@ -18,7 +18,9 @@ class _AnalyzePageState extends State<AnalyzePage> {
   File? _image;
   Uint8List? _webImage;
   final picker = ImagePicker();
-  String? analysisResult;
+  String? _dishName; // ตัวแปรเก็บชื่อเมนู
+  List<String> _ingredients = []; // ตัวแปรเก็บวัตถุดิบที่แยกออกมา
+  List<String> _diseaseRisks = []; // ตัวแปรเก็บวัตถุดิบที่แยกออกมา
 
   Future<void> _pickImageFromFilePicker() async {
     try {
@@ -58,6 +60,110 @@ class _AnalyzePageState extends State<AnalyzePage> {
     }
   }
 
+  void _parseAnalysisResult(String result) {
+    // ตรวจสอบว่าผลลัพธ์ที่ได้ไม่เป็น null และไม่ว่างเปล่า
+    if (result == null || result.trim().isEmpty) {
+      setState(() {
+        _dishName = 'ไม่สามารถวิเคราะห์ชื่อเมนูได้';
+        _ingredients = ['ไม่พบวัตถุดิบ'];
+        _diseaseRisks = ['ไม่พบข้อมูลโรคที่เสี่ยง'];
+      });
+      return;
+    }
+
+    final lines = result.split('\n'); // แยกผลลัพธ์เป็นบรรทัด
+    String dishName = ''; // ตัวแปรเก็บชื่อเมนู
+    List<String> ingredients = []; // อาร์เรย์สำหรับวัตถุดิบ
+    List<String> diseaseRisks = []; // อาร์เรย์สำหรับโรคที่เสี่ยง
+
+    // สร้าง RegExp สำหรับการลบอักขระพิเศษ
+    final specialCharsRegex =
+        RegExp(r'[^\w\sก-๙]'); // กรองเฉพาะตัวอักษรภาษาไทย/อังกฤษ
+
+    bool isReadingIngredients = false;
+    bool isReadingDiseases = false;
+
+    // วนลูปเพื่อแยกข้อมูลจากบรรทัด
+    for (String line in lines) {
+      line = line.trim(); // ตัดช่องว่างออก
+      line = line.replaceAll(specialCharsRegex, ''); // ลบอักขระพิเศษออก
+
+      // ตรวจสอบบรรทัดที่มีชื่อเมนู
+      if (line.startsWith('เมนูนี้คือ')) {
+        // ใช้ RegExp จับชื่อเมนู
+        final regex = RegExp(r'เมนูนี้คือ\s*(.*)');
+        final match = regex.firstMatch(line);
+        if (match != null) {
+          dishName =
+              match.group(1)!.split(' ').first.trim(); // ดึงเฉพาะชื่อเมนูออกมา
+          if (dishName.isEmpty) {
+            dishName = 'ไม่สามารถวิเคราะห์ชื่อเมนูได้';
+          }
+        }
+      }
+      // ตรวจสอบว่าบรรทัดเริ่มการอ่านวัตถุดิบ
+      else if (line.startsWith('วัตถุดิบ') || line.contains('ในจาน')) {
+        isReadingIngredients = true;
+        isReadingDiseases = false;
+        continue;
+      }
+      // ตรวจสอบว่าบรรทัดเริ่มการอ่านโรคที่เสี่ยง
+      else if (line.startsWith('โรค') ||
+          line.contains('เสี่ยงต่อ') ||
+          line.contains('อาจทำให้เกิด')) {
+        isReadingDiseases = true;
+        isReadingIngredients = false;
+        continue;
+      }
+      // เพิ่มบรรทัดที่เป็นวัตถุดิบ
+      else if (isReadingIngredients && line.isNotEmpty && _isIngredient(line)) {
+        ingredients.add(line); // เพิ่มวัตถุดิบลงในอาร์เรย์
+      }
+      // เพิ่มบรรทัดที่เป็นโรคที่เสี่ยง
+      else if (isReadingDiseases && line.isNotEmpty) {
+        if (line.contains('ไม่มี')) {
+          diseaseRisks.add('ไม่มีโรคที่เสี่ยง');
+          break;
+        }
+        // ตรวจสอบเฉพาะข้อความที่เกี่ยวข้องกับโรคที่เสี่ยง
+        if (line.contains('โรค') ||
+            line.contains('อาจทำให้เกิด') ||
+            line.contains('เสี่ยงต่อ')) {
+          diseaseRisks.add(line); // เพิ่มโรคที่เสี่ยงลงในอาร์เรย์
+        }
+      }
+    }
+
+    // ตรวจสอบกรณีที่ไม่มีวัตถุดิบ
+    if (ingredients.isEmpty) {
+      ingredients.add('ไม่พบวัตถุดิบ');
+    }
+
+    // ตรวจสอบกรณีที่ไม่มีโรคที่เสี่ยง
+    if (diseaseRisks.isEmpty) {
+      diseaseRisks.add('ไม่พบข้อมูลโรคที่เสี่ยง');
+    }
+
+    // อัพเดตตัวแปร State เพื่อแสดงผล
+    setState(() {
+      _dishName = dishName;
+      _ingredients = ingredients;
+      _diseaseRisks = diseaseRisks;
+    });
+  }
+
+// ฟังก์ชันช่วยตรวจสอบว่าวัตถุดิบถูกต้องหรือไม่
+  bool _isIngredient(String text) {
+    // ตรวจสอบว่าข้อความนั้นเป็นวัตถุดิบ (ไม่มีตัวเลขและมีความยาวพอสมควร)
+    return text.length > 1 &&
+        text.length < 50 &&
+        !text.contains(RegExp(r'\d')) && // กรองข้อความที่มีตัวเลขออก
+        !text.contains('อื่นๆ') && // กรองคำว่า "อื่นๆ" ที่ไม่จำเป็น
+        !text.contains(
+            'น้ำ') && // กรองข้อความเกี่ยวกับน้ำ เช่น "น้ำปลา" "น้ำตาล"
+        !text.contains('ปรุง'); // กรองคำว่า "ปรุง" ที่อาจจะไม่ใช่วัตถุดิบจริง
+  }
+
   Future<void> _analyzeImage() async {
     // แสดง pop-up ขณะกำลังวิเคราะห์
     showDialog(
@@ -95,44 +201,12 @@ class _AnalyzePageState extends State<AnalyzePage> {
               SizedBox(height: 16),
               // ข้อความอธิบาย
               Text(
-                'โปรดรอสักครู่ ขณะนี้เรากำลังวิเคราะห์วัตถุดิบและข้อมูลโภชนาการอย่างละเอียด เพื่อให้ข้อมูลที่ดีที่สุดสำหรับคุณ',
+                'โปรดรอสักครู่ ขณะนี้เรากำลังวิเคราะห์วัตถุดิบอย่างละเอียด เพื่อให้ข้อมูลที่ดีที่สุดสำหรับคุณ',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[700], // สีเทาดูสบายตา
                   fontWeight: FontWeight.w400,
                   height: 1.4, // เพิ่มระยะห่างระหว่างบรรทัด
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24),
-              // Progress Indicator แบบ Gradient
-              Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [Colors.blueAccent, Colors.purpleAccent],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LinearProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.transparent),
-                    backgroundColor: Colors.transparent,
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              // ข้อความเสริม
-              Text(
-                'นี่คือการสร้างผลลัพธ์จากการวิเคราะห์ข้อมูลสุขภาพ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blueAccent, // สีฟ้าสว่างเน้นข้อความเสริม
-                  fontStyle: FontStyle.italic,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -154,42 +228,37 @@ class _AnalyzePageState extends State<AnalyzePage> {
 
       if (imageBytes != null) {
         final response = await gemini.textAndImage(
-          text: 'เมนูนี้คืออะไร และมีวัตถุดิบอะไรในจานบ้าง ตอบเป็นภาษาไทย',
+          text:
+              'เมนูนี้คืออะไร มีวัตถุดิบอะไรในจานบ้าง และเสี่ยงต่อโรคอะไรบ้าง ถ้าไม่มีก็บอกว่าไม่มี ตอบเป็นภาษาไทย และแยกรายการวัตถุดิบและโรคให้เป็นอันๆ',
           images: [imageBytes],
         );
 
-        setState(() {
-          analysisResult =
-              response?.content?.parts?.last.text ?? 'ไม่สามารถวิเคราะห์ได้';
-        });
+        print('Response from AI: ${response?.content?.parts?.last.text}');
+
+        final analysisResult =
+            response?.content?.parts?.last.text ?? 'ไม่สามารถวิเคราะห์ได้';
+
+        // แยกผลการวิเคราะห์
+        _parseAnalysisResult(analysisResult);
+
+        // ปิด pop-up และไปยังหน้า AnalyzeDetailsPage
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AnalyzeDetailsPage(
+              dishName: _dishName!, // ส่งชื่อเมนู
+              ingredients: _ingredients, // ส่งรายการวัตถุดิบ
+              diseaseRisks: _diseaseRisks, // ส่งรายการวัตถุดิบ
+              webImage: _webImage, // ส่งรูปภาพ
+              imageFile: _image, // ส่งรูปภาพ
+            ),
+          ),
+        );
       }
     } catch (e) {
       print('Error analyzing image: $e');
-      setState(() {
-        analysisResult = 'เกิดข้อผิดพลาดในการวิเคราะห์';
-      });
-    }
-
-    // ปิด pop-up หลังการวิเคราะห์เสร็จสิ้น
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AnalyzeDetailsPage(
-          dishName: analysisResult!,
-          webImage: _webImage, // For web
-          imageFile: _image, // For mobile
-        ),
-      ),
-    );
-
-    // Navigate to analyze_detail.dart page
-    if (analysisResult != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AnalyzeDetailsPage(dishName: analysisResult!),
-        ),
-      );
+      Navigator.pop(context); // ปิด pop-up ถ้ามี error
     }
   }
 
@@ -366,16 +435,6 @@ class _AnalyzePageState extends State<AnalyzePage> {
                 ),
               ),
               SizedBox(height: 32.0),
-
-              // Analysis Result Section
-              if (analysisResult != null)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'ผลการวิเคราะห์: $analysisResult',
-                    style: TextStyle(fontSize: 16.0, color: Colors.black),
-                  ),
-                ),
             ],
           ),
         ),
