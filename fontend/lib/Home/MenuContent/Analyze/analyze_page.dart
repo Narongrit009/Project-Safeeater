@@ -255,6 +255,12 @@ class _AnalyzePageState extends State<AnalyzePage> {
             ),
           ),
         );
+        // พิมพ์ค่าตัวแปรเพื่อดูผลลัพธ์
+        print('Dish Name: $_dishName');
+        print('Ingredients: $_ingredients');
+        print('Disease Risks: $_diseaseRisks');
+        // print('Web Image: $_webImage');
+        // print('Image File: $_image');
       }
     } catch (e) {
       print('Error analyzing image: $e');

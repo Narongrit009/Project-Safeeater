@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:convert'; // For JSON decoding
 import 'dart:typed_data';
 import 'dart:io'; // For handling file images (not needed for web)
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // For environment variables
 
-class AnalyzeDetailsPage extends StatelessWidget {
+class AnalyzeDetailsPage extends StatefulWidget {
   final String dishName; // The result of the analysis (name of the dish)
   final List<String> ingredients; // List of ingredients
   final List<String> diseaseRisks; // List of disease risks
@@ -16,6 +19,38 @@ class AnalyzeDetailsPage extends StatelessWidget {
     this.webImage,
     this.imageFile,
   });
+
+  @override
+  _AnalyzeDetailsPageState createState() => _AnalyzeDetailsPageState();
+}
+
+class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
+  List<Map<String, dynamic>> ingredientDetails = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchIngredients();
+  }
+
+  // Function to call API and fetch ingredient details
+  Future<void> fetchIngredients() async {
+    final String apiUrl = dotenv.env['API_URL_CHECK_SHOW_INGREDIENTS'] ?? '';
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'ingredients': widget.ingredients}),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> responseData = jsonDecode(response.body);
+      setState(() {
+        ingredientDetails = List<Map<String, dynamic>>.from(responseData);
+      });
+    } else {
+      print('Failed to load ingredient data');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +103,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                       ),
                       Center(
                         child: Text(
-                          dishName,
+                          widget.dishName,
                           style: TextStyle(
                             fontSize: 26.0,
                             fontWeight: FontWeight.bold,
@@ -101,63 +136,78 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16.0),
-                Container(
-                  height: 100.0,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: ingredients.length, // ใช้จำนวนวัตถุดิบ
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          // Logic for ingredient details
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 60.0,
-                                height: 60.0,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      blurRadius: 10.0,
-                                      offset: Offset(0, 5),
+                ingredientDetails.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : Container(
+                        height: 100.0,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount:
+                              ingredientDetails.length, // ใช้จำนวนวัตถุดิบ
+                          itemBuilder: (context, index) {
+                            final ingredient = ingredientDetails[index];
+                            final imageUrl = ingredient['image_url'];
+                            final ingredientName =
+                                ingredient['ingredient_name'];
+
+                            // Use proxy to fetch the image
+                            final proxyUrl =
+                                '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}';
+
+                            return GestureDetector(
+                              onTap: () {
+                                // Logic for ingredient details
+                              },
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 60.0,
+                                      height: 60.0,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            blurRadius: 10.0,
+                                            offset: Offset(0, 5),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        child: Image.network(
+                                          proxyUrl,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    Container(
+                                      width: 60.0,
+                                      child: Text(
+                                        ingredientName, // แสดงชื่อวัตถุดิบ
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 14.0,
+                                          color: Colors.black,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: Image.asset(
-                                    'images/secret_ingredients.png', // Placeholder image
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
                               ),
-                              SizedBox(height: 4.0),
-                              Container(
-                                width: 60.0,
-                                child: Text(
-                                  ingredients[index], // แสดงชื่อวัตถุดิบ
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontSize: 14.0,
-                                    color: Colors.black,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ),
 
                 // Additional details about ingredients
                 SizedBox(height: 24.0),
@@ -176,7 +226,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'รายละเอียดของ $dishName ประกอบด้วยวัตถุดิบหลักๆ คือ ${ingredients.join(', ')}',
+                    'รายละเอียดของ ${widget.dishName} ประกอบด้วยวัตถุดิบหลักๆ คือ ${widget.ingredients.join(', ')}',
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Colors.black.withOpacity(0.8),
@@ -202,7 +252,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: diseaseRisks.isEmpty
+                    children: widget.diseaseRisks.isEmpty
                         ? [
                             Text(
                               'ไม่พบข้อมูลโรคที่เสี่ยง',
@@ -212,7 +262,7 @@ class AnalyzeDetailsPage extends StatelessWidget {
                               ),
                             ),
                           ]
-                        : diseaseRisks.map((disease) {
+                        : widget.diseaseRisks.map((disease) {
                             return Padding(
                               padding:
                                   const EdgeInsets.symmetric(vertical: 4.0),
@@ -250,10 +300,10 @@ class AnalyzeDetailsPage extends StatelessWidget {
                   ),
                   child: CircleAvatar(
                     radius: 100.0,
-                    backgroundImage: webImage != null
-                        ? MemoryImage(webImage!) // Web Image
-                        : imageFile != null
-                            ? FileImage(imageFile!) // Mobile Image
+                    backgroundImage: widget.webImage != null
+                        ? MemoryImage(widget.webImage!) // Web Image
+                        : widget.imageFile != null
+                            ? FileImage(widget.imageFile!) // Mobile Image
                             : AssetImage('images/secret_ingredients.png')
                                 as ImageProvider,
                     backgroundColor: Colors.transparent,
