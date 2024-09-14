@@ -1,59 +1,60 @@
 <?php
-include 'conn.php';
-
-header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header('Content-Type: application/json');
 
-// Ensure the request method is POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get user input
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+include "./conn.php";
 
-    // Use prepared statement to prevent SQL injection
-    $stmt = mysqli_prepare($conn,
-        "SELECT
-    users.email,
-    users.username,
-    users.tel,
-    health_conditions.condition_name,
-    users.gender,
-    users.age,
-    users.height,
-    users.weight
-FROM
-    users
-LEFT JOIN
-    health_conditions ON users.condition_id = health_conditions.condition_id
-WHERE
-    users.email = ?");
+// รับข้อมูล JSON จากการร้องขอ
+$data = json_decode(file_get_contents('php://input'), true);
 
-    mysqli_stmt_bind_param($stmt, "s", $email);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+if (isset($data['email']) && !empty($data['email'])) {
+    $email = $data['email'];
 
-    // Check if the query was successful
-    if ($result) {
-        $output = array(); // Initialize an array to hold results
-        while ($row = mysqli_fetch_assoc($result)) {
-            $output[] = $row;
-        }
-        // Set response code based on whether results were found or not
-        $response_code = (count($output) > 0) ? 200 : 404;
-        http_response_code($response_code);
-        echo json_encode($output);
+    // ดึงข้อมูลผู้ใช้จาก email
+    $user_query = $conn->prepare("
+    SELECT
+        u.user_id,
+        u.username,
+        u.email,
+        u.tel,
+        u.gender,
+        u.birthday,
+        u.height,
+        u.weight,
+        IFNULL(GROUP_CONCAT(DISTINCT hc.condition_name ORDER BY hc.condition_name ASC SEPARATOR ', '), 'ไม่มี') AS chronic_diseases,
+        IFNULL(GROUP_CONCAT(DISTINCT ni.ingredient_name ORDER BY ni.ingredient_name ASC SEPARATOR ', '), 'ไม่มี') AS food_allergies
+    FROM
+        users u
+    LEFT JOIN
+        users_health_conditions uhc ON u.user_id = uhc.user_id
+    LEFT JOIN
+        health_conditions hc ON uhc.condition_id = hc.condition_id
+    LEFT JOIN
+        users_allergies ua ON u.user_id = ua.user_id
+    LEFT JOIN
+        nutritional_information ni ON ua.nutrition_id = ni.ingredient_id
+    WHERE
+        u.email = ?
+    GROUP BY
+        u.user_id;
+    ");
+
+    $user_query->bind_param("s", $email);
+    $user_query->execute();
+    $result = $user_query->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo json_encode(["status" => "success", "data" => $row]);
     } else {
-        // Send error response code
-        http_response_code(500);
-        echo json_encode(array("message" => "Internal Server Error"));
+        echo json_encode(["status" => "error", "message" => "User not found"]);
     }
 
-    // Close prepared statement
-    mysqli_stmt_close($stmt);
+    $user_query->close();
 } else {
-    // Invalid request method
-    http_response_code(405); // Method Not Allowed
-    echo json_encode(array("message" => "Invalid Request Method"));
+    echo json_encode(["status" => "error", "message" => "Invalid input"]);
 }
 
-// Close database connection
-mysqli_close($conn);
+$conn->close();
