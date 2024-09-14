@@ -164,7 +164,21 @@ class _AnalyzePageState extends State<AnalyzePage> {
         !text.contains('ปรุง'); // กรองคำว่า "ปรุง" ที่อาจจะไม่ใช่วัตถุดิบจริง
   }
 
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _analyzeImage() async {
+    if (_image == null && _webImage == null) {
+      // แสดง Snackbar ถ้ายังไม่ได้อัพโหลดรูปภาพ
+      _showSnackBar(context, 'กรุณาอัพโหลดรูปภาพก่อนวิเคราะห์');
+      return;
+    }
     // แสดง pop-up ขณะกำลังวิเคราะห์
     showDialog(
       context: context,
@@ -417,7 +431,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
                           ],
                         ),
                         child: ElevatedButton.icon(
-                          onPressed: _analyzeImage, // Analyze Image
+                          onPressed: _analyzeImage, // ปุ่มวิเคราะห์
                           icon: Icon(Icons.analytics,
                               size: 20.0, color: Colors.white),
                           label: Text(
