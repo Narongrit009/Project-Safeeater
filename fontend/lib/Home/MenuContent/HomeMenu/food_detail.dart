@@ -542,39 +542,55 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(disease.length, (index) {
-                    String diseaseName = disease[index];
-                    String diseaseDescription = disease_detail.length > index
-                        ? disease_detail[index]
-                        : '';
+                  children: disease.isEmpty
+                      ? [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Text(
+                              '- ไม่มีโรคที่เสี่ยง',
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ]
+                      : List.generate(disease.length, (index) {
+                          String diseaseName = disease[index];
+                          String diseaseDescription =
+                              disease_detail.length > index
+                                  ? disease_detail[index]
+                                  : '';
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '$diseaseName : ', // ชื่อโรค
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
-                                color: Colors.black.withOpacity(0.8),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '$diseaseName : ', // ชื่อโรค
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                      color: Colors.black.withOpacity(0.8),
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        diseaseDescription, // รายละเอียดของโรค
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black.withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            TextSpan(
-                              text: diseaseDescription, // รายละเอียดของโรค
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
+                          );
+                        }),
                 ),
               ),
+
               SizedBox(height: 80.0),
             ],
           ),

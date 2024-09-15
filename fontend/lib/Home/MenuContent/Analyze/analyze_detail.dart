@@ -169,7 +169,53 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
         var responseData = await http.Response.fromStream(response);
         var result = jsonDecode(responseData.body);
         if (result['status'] == 'success') {
-          _showSnackBar('บันทึกเมนูอาหารสำเร็จ!');
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent closing by tapping outside
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.white, // White background for clarity
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Success animation using Lottie
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 150,
+                      height: 150,
+                      repeat: false,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'บันทึกเมนูอาหารสำเร็จ!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // Text color for success
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+
+          // Delay for 2 seconds to allow user to see the success message
+          await Future.delayed(Duration(seconds: 3));
+          Navigator.of(context).pop(); // Go back to the previous page
         } else {
           _showSnackBar(
               'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${result['message']}');
@@ -318,13 +364,6 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
                             icon: Icon(Icons.arrow_back, color: Colors.white),
                             onPressed: () {
                               Navigator.of(context).pop();
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.favorite_border,
-                                color: Colors.white),
-                            onPressed: () {
-                              // Implement favorite logic
                             },
                           ),
                         ],

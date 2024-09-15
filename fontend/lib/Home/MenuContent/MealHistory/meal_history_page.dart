@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
-import 'package:intl/intl.dart'; // นำเข้าแพ็คเกจ intl
+import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class MealHistoryPage extends StatefulWidget {
@@ -17,6 +17,8 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool selectionMode = false;
+  bool isViewingPhotoHistory =
+      false; // ใช้สำหรับสลับระหว่างประวัติทั่วไปและประวัติที่ถ่ายรูป
   List<int> selectedEdibleItems = [];
   List<int> selectedInedibleItems = [];
   List<Map<String, dynamic>> edibleMeals = [];
@@ -28,9 +30,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     _tabController = TabController(length: 2, vsync: this);
     _fetchMealHistory();
     initializeDateFormatting('th_TH', null).then((_) {
-      setState(() {
-        // เมื่อ locale ถูกโหลดแล้ว สามารถแปลงวันที่ได้
-      });
+      setState(() {});
     });
   }
 
@@ -40,14 +40,19 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     super.dispose();
   }
 
+  // ฟังก์ชันนี้ใช้สำหรับสลับระหว่างการดึงข้อมูลของเมนูอาหารทั่วไปและประวัติการถ่ายรูป
   Future<void> _fetchMealHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? storedEmail = prefs.getString('email');
 
     if (storedEmail != null) {
       try {
+        final String apiUrl = isViewingPhotoHistory
+            ? dotenv.env['API_URL_MEAL_PHOTO_HISTORY'] ?? ''
+            : dotenv.env['API_URL_MEAL_HISTORY'] ?? '';
+
         final response = await http.post(
-          Uri.parse(dotenv.env['API_URL_MEAL_HISTORY'] ?? ''),
+          Uri.parse(apiUrl),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'email': storedEmail}),
         );
@@ -57,19 +62,35 @@ class _MealHistoryPageState extends State<MealHistoryPage>
           if (result['status'] == 'success') {
             setState(() {
               final List<dynamic> mealsData = result['data'];
-              edibleMeals = mealsData
-                  .where((meal) => meal['is_edible'] == 'true')
-                  .map<Map<String, dynamic>>(
-                      (meal) => Map<String, dynamic>.from(meal))
-                  .toList();
-              inedibleMeals = mealsData
-                  .where((meal) => meal['is_edible'] == 'false')
-                  .map<Map<String, dynamic>>(
-                      (meal) => Map<String, dynamic>.from(meal))
-                  .toList();
+
+              if (isViewingPhotoHistory) {
+                // ประวัติอาหารที่ถ่ายเอง
+                edibleMeals = mealsData
+                    .where((meal) => meal['is_edible'] == 'true')
+                    .map<Map<String, dynamic>>(
+                        (meal) => Map<String, dynamic>.from(meal))
+                    .toList();
+                inedibleMeals = mealsData
+                    .where((meal) => meal['is_edible'] == 'false')
+                    .map<Map<String, dynamic>>(
+                        (meal) => Map<String, dynamic>.from(meal))
+                    .toList();
+              } else {
+                // ประวัติอาหารทั่วไป
+                edibleMeals = mealsData
+                    .where((meal) => meal['is_edible'] == 'true')
+                    .map<Map<String, dynamic>>(
+                        (meal) => Map<String, dynamic>.from(meal))
+                    .toList();
+                inedibleMeals = mealsData
+                    .where((meal) => meal['is_edible'] == 'false')
+                    .map<Map<String, dynamic>>(
+                        (meal) => Map<String, dynamic>.from(meal))
+                    .toList();
+              }
             });
           } else {
-            _showSnackBar('คุณยังไม่มีประวัติการรับประทานอาหาร');
+            _showSnackBar('ไม่พบประวัติการรับประทานอาหาร');
           }
         } else {
           _showSnackBar('การร้องขอล้มเหลว กรุณาลองใหม่อีกครั้ง');
@@ -95,8 +116,13 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     if (selectedIds.isEmpty) return;
 
     try {
+      // ตรวจสอบว่ากำลังดูประวัติอาหารทั่วไปหรือประวัติอาหารที่ถ่ายเอง
+      final apiUrl = isViewingPhotoHistory
+          ? dotenv.env['API_URL_DELETE_MEAL_PHOTO_HISTORY'] ?? ''
+          : dotenv.env['API_URL_DELETE_MEAL_HISTORY'] ?? '';
+
       final response = await http.post(
-        Uri.parse(dotenv.env['API_URL_DELETE_MEAL_HISTORY'] ?? ''),
+        Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'history_ids': selectedIds}),
       );
@@ -106,6 +132,12 @@ class _MealHistoryPageState extends State<MealHistoryPage>
         if (result['status'] == 'success') {
           _showSnackBar('ลบรายการสำเร็จ');
           _fetchMealHistory(); // Refresh the meal history after deletion
+
+          setState(() {
+            selectedEdibleItems.clear();
+            selectedInedibleItems.clear();
+            selectionMode = false; // ปิดโหมดการเลือก
+          });
         } else {
           _showSnackBar('เกิดข้อผิดพลาดในการลบรายการ');
         }
@@ -124,11 +156,11 @@ class _MealHistoryPageState extends State<MealHistoryPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.check_circle, // เพิ่มไอคอน
+            Icons.check_circle,
             color: Colors.white,
             size: 28.0,
           ),
-          SizedBox(width: 12.0), // ระยะห่างระหว่างไอคอนกับข้อความ
+          SizedBox(width: 12.0),
           Expanded(
             child: Text(
               message,
@@ -137,24 +169,24 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              textAlign: TextAlign.center, // ทำให้ข้อความอยู่ตรงกลาง
+              textAlign: TextAlign.center,
             ),
           ),
         ],
       ),
-      backgroundColor: Colors.greenAccent[700], // พื้นหลังสีเขียวเข้ม
-      behavior: SnackBarBehavior.floating, // SnackBar แบบลอย
+      backgroundColor: Colors.greenAccent[700],
+      behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24.0),
       ),
-      elevation: 8, // เพิ่มเงาให้กับ SnackBar
-      duration: Duration(seconds: 3), // แสดงผลเป็นเวลา 3 วินาที
+      elevation: 8,
+      duration: Duration(seconds: 3),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  // ฟังก์ชันแสดงป็อปอัปคอนเฟิร์มการลบ
+  // ป็อปอัปคอนเฟิร์มการลบ
   Future<void> _showDeleteConfirmationDialog() async {
     final isConfirmed = await showDialog<bool>(
       context: context,
@@ -197,7 +229,6 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20.0),
-              // อนิเมชัน Lottie ที่เพิ่มความสวยงาม
               Lottie.asset(
                 'animations/delete.json',
                 width: 150,
@@ -206,19 +237,17 @@ class _MealHistoryPageState extends State<MealHistoryPage>
               ),
             ],
           ),
-          actionsAlignment: MainAxisAlignment.center, // จัดให้อยู่ตรงกลาง
+          actionsAlignment: MainAxisAlignment.center,
           actions: <Widget>[
-            // ปุ่มยกเลิก
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // ปิดป็อปอัปและไม่ลบ
+                Navigator.of(context).pop(false);
               },
               child: Text(
                 'ยกเลิก',
                 style: TextStyle(color: Colors.grey[600], fontSize: 18.0),
               ),
             ),
-            // ปุ่มลบที่มีการไล่สีและเงา
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -238,12 +267,12 @@ class _MealHistoryPageState extends State<MealHistoryPage>
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true); // ปิดป็อปอัปและลบ
+                  Navigator.of(context).pop(true);
                 },
                 child: Text('ลบ'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent, // ทำให้พื้นหลังโปร่งใส
-                  foregroundColor: Colors.white, // สีของข้อความในปุ่ม
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
                   padding:
                       EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
                   textStyle:
@@ -251,7 +280,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  elevation: 0, // ปิดการใช้งานเงามาตรฐาน
+                  elevation: 0,
                 ),
               ),
             ),
@@ -261,7 +290,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     );
 
     if (isConfirmed == true) {
-      _deleteSelectedItems(); // ถ้าได้รับการยืนยัน ให้ลบรายการ
+      _deleteSelectedItems();
     }
   }
 
@@ -279,7 +308,18 @@ class _MealHistoryPageState extends State<MealHistoryPage>
           children: [
             _buildHeader(context),
             SizedBox(height: 8.0),
-            _buildClearHistoryButton(),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0), // Add padding for consistency
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Space the buttons evenly
+                children: [
+                  _buildSwitchViewButton(), // Switch view button
+                  _buildClearHistoryButton(), // Clear history button
+                ],
+              ),
+            ),
             _buildTabBar(),
             Expanded(
               child: TabBarView(
@@ -290,9 +330,80 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                 ],
               ),
             ),
-            if (selectionMode)
-              _buildDeleteButton(), // ปุ่มลบเมื่ออยู่ในโหมดการเลือก
+            if (selectionMode) _buildDeleteButton(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchViewButton() {
+    return Padding(
+      padding: const EdgeInsets.only(
+          left: 16.0, top: 8.0), // Adjusting position upwards
+      child: Align(
+        alignment: Alignment.centerLeft, // Aligning the button to the left
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() {
+              isViewingPhotoHistory = !isViewingPhotoHistory; // Toggle view
+              _fetchMealHistory(); // Fetch new data on toggle
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(
+                horizontal: 14.0, vertical: 10.0), // Balanced padding
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0), // Softer rounded edges
+            ),
+            backgroundColor:
+                Colors.transparent, // Transparent background for gradient
+            shadowColor: Colors.transparent, // No shadow
+            elevation: 0, // No elevation for a flat look
+          ),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFB621FE), // Vibrant purple
+                  Color(0xFF1FD1F9), // Bright teal
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20.0), // Rounded corners
+            ),
+            child: Container(
+              constraints: BoxConstraints(
+                  minWidth:
+                      120), // Ensure minimal width for a consistent design
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0, vertical: 8.0), // Optimized padding
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isViewingPhotoHistory
+                        ? Icons.camera_alt_outlined
+                        : Icons.fastfood_outlined, // Updated icons
+                    color: Colors.white,
+                    size: 18.0, // Slightly larger icon for better visibility
+                  ),
+                  SizedBox(width: 8.0), // Space between icon and text
+                  Text(
+                    isViewingPhotoHistory ? 'อาหารของคุณ' : 'อาหารทั่วไป',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize:
+                          14.0, // Increased font size slightly for better readability
+                      fontWeight:
+                          FontWeight.w600, // Medium weight for a balanced look
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -343,16 +454,13 @@ class _MealHistoryPageState extends State<MealHistoryPage>
           setState(() {
             selectionMode = !selectionMode;
             selectedEdibleItems.clear();
-            selectedInedibleItems
-                .clear(); // ล้างการเลือกเมื่อเข้าสู่หรือออกจากโหมดการเลือก
+            selectedInedibleItems.clear();
           });
         },
         child: Text(
-          selectionMode
-              ? 'ยกเลิก'
-              : 'ลบประวัติ', // เปลี่ยนข้อความเมื่ออยู่ในโหมดการเลือก
+          selectionMode ? 'ยกเลิก' : 'ลบประวัติ',
           style: TextStyle(
-            color: selectionMode ? Colors.blue : Colors.red, // เปลี่ยนสีข้อความ
+            color: selectionMode ? Colors.blue : Colors.red,
             fontSize: 16.0,
           ),
         ),
@@ -416,7 +524,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
           ),
         ],
         onTap: (index) {
-          setState(() {}); // Rebuild to update gradient
+          setState(() {});
         },
       ),
     );
@@ -435,7 +543,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
         return _buildMealHistoryItem(
           index,
           meal['menu_name'],
-          meal['meal_time'],
+          meal['created_at'],
           meal['image_url'],
           meal['is_edible'] == 'true',
           isEdible,
@@ -444,14 +552,13 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     );
   }
 
-  Widget _buildMealHistoryItem(int index, String name, String time,
-      String imageUrl, bool isFavorite, bool isEdible) {
+  Widget _buildMealHistoryItem(int index, String? name, String? time,
+      String? imageUrl, bool isFavorite, bool isEdible) {
     final selectedItems =
         isEdible ? selectedEdibleItems : selectedInedibleItems;
 
     // แปลงวันที่และเวลาเป็นภาษาไทย
-    DateTime dateTime =
-        DateTime.parse(time); // สมมติว่า time เป็น String ในรูปแบบ ISO 8601
+    DateTime dateTime = time != null ? DateTime.parse(time) : DateTime.now();
 
     // แปลงเวลาและวันที่เป็นรูปแบบที่ต้องการ
     String formattedDate = 'เวลา ' +
@@ -479,9 +586,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
         }
       },
       child: Card(
-        color: selectedItems.contains(index)
-            ? Colors.blue[50]
-            : Colors.white, // เปลี่ยนสีพื้นหลังเมื่อถูกเลือก
+        color: selectedItems.contains(index) ? Colors.blue[50] : Colors.white,
         margin: const EdgeInsets.only(bottom: 16.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
@@ -493,12 +598,19 @@ class _MealHistoryPageState extends State<MealHistoryPage>
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16.0),
-                child: Image.network(
-                  '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
-                  width: 80.0,
-                  height: 80.0,
-                  fit: BoxFit.cover,
-                ),
+                child: imageUrl != null && imageUrl.isNotEmpty
+                    ? Image.network(
+                        '${dotenv.env['PROXY_URL'] ?? ''}?url=${Uri.encodeComponent(imageUrl)}',
+                        width: 80.0,
+                        height: 80.0,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        'images/placeholder.png', // รูปภาพ placeholder กรณี imageUrl เป็น null
+                        width: 80.0,
+                        height: 80.0,
+                        fit: BoxFit.cover,
+                      ),
               ),
               SizedBox(width: 16.0),
               Expanded(
@@ -506,7 +618,9 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      name != null
+                          ? name
+                          : 'ไม่ทราบชื่อเมนู', // กรณี menu_name เป็น null
                       style: TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
@@ -514,7 +628,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                     ),
                     SizedBox(height: 8.0),
                     Text(
-                      formattedDate, // แสดงเวลาและวันที่ในรูปแบบภาษาไทย
+                      formattedDate,
                       style: TextStyle(
                         fontSize: 13.0,
                         color: Colors.grey[600],
@@ -558,10 +672,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF3DBBFE),
-            Color(0xFF238FFF)
-          ], // ไล่สีสำหรับส่วนเลือกทั้งหมด
+          colors: [Color(0xFF3DBBFE), Color(0xFF238FFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -632,7 +743,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
             child: ElevatedButton.icon(
               onPressed: selectedItems.isNotEmpty
                   ? () {
-                      _showDeleteConfirmationDialog(); // เรียกป็อปอัปคอนเฟิร์มก่อนลบ
+                      _showDeleteConfirmationDialog();
                     }
                   : null,
               icon: const Icon(Icons.delete, color: Colors.white),
