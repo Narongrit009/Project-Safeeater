@@ -143,6 +143,11 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
       // Adding form fields (POST data)
       request.fields['user_id'] = userId.toString();
       request.fields['menu_name'] = widget.dishName;
+      // แปลงลิสต์ ingredients เป็น JSON string
+      request.fields['ingredient_list'] = jsonEncode(widget.ingredients);
+
+// แปลงลิสต์ diseaseRisks เป็น JSON string
+      request.fields['disease_list'] = jsonEncode(widget.diseaseRisks);
       request.fields['is_edible'] = isEdible;
 
       // Adding the image file (Files data)
@@ -200,7 +205,7 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                      'ระบบได้บันทึกเมนูของคุณเรียบร้อยแล้ว',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black87,

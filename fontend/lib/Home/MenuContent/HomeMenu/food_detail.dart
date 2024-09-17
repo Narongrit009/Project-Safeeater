@@ -19,16 +19,89 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
   bool _isLoading = true;
   List<String> foodAllergies = [];
   bool hasAllergyConflict = false;
+  bool isFavorite = false; // สถานะรายการโปรด
 
   @override
   void initState() {
     super.initState();
     _fetchUserProfileAndMenuDetails();
+    _checkFavoriteStatus();
   }
 
   Future<void> _fetchUserProfileAndMenuDetails() async {
     await _fetchUserProfile(); // Fetch user's allergies first
     await _fetchMenuDetails(); // Fetch menu details and check for allergy conflicts
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+
+    if (email != null) {
+      try {
+        final response = await http.post(
+          Uri.parse(dotenv.env['API_URL_CHECK_FAVORITE_FOOD'] ?? ''),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'email': email,
+            'menu_id': widget.menuId,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final result = jsonDecode(response.body);
+          if (result['status'] == 'success') {
+            setState(() {
+              isFavorite = result['is_favorite'] == 'true';
+            });
+          }
+        }
+      } catch (error) {
+        print('Error checking favorite status: $error');
+      }
+    }
+  }
+
+  Future<void> _toggleFavoriteStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+
+    if (email == null) {
+      _showSnackBar('ไม่พบอีเมลในระบบ');
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_TOGGLE_FAVORITE_FOOD'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'email': email,
+          'menu_id': widget.menuId,
+          'is_favorite': isFavorite ? 'false' : 'true', // สลับสถานะ
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          setState(() {
+            isFavorite = !isFavorite; // อัปเดตสถานะรายการโปรด
+          });
+          _showSnackBar(
+              isFavorite ? 'เพิ่มในรายการโปรดแล้ว' : 'ลบออกจากรายการโปรดแล้ว');
+        }
+      } else {
+        _showSnackBar('เกิดข้อผิดพลาดในการอัปเดตรายการโปรด');
+      }
+    } catch (error) {
+      _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      print('Error toggling favorite status: $error');
+    }
   }
 
   Future<void> _fetchUserProfile() async {
@@ -195,7 +268,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
 
           // Close the dialog and return to the previous screen
           Navigator.of(context).pop(); // Close the success dialog
-          Navigator.of(context).pop(); // Go back to the previous page
+          Navigator.pop(context, true); // ส่งค่า true กลับไปยังหน้าก่อนหน้า
         } else {
           _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
@@ -292,9 +365,39 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    final snackBar = SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.check_circle, // เพิ่มไอคอน
+            color: Colors.white,
+            size: 28.0,
+          ),
+          SizedBox(width: 12.0), // ระยะห่างระหว่างไอคอนกับข้อความ
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center, // ทำให้ข้อความอยู่ตรงกลาง
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.greenAccent[700], // พื้นหลังสีเขียวเข้ม
+      behavior: SnackBarBehavior.floating, // SnackBar แบบลอย
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24.0),
+      ),
+      elevation: 8, // เพิ่มเงาให้กับ SnackBar
+      duration: Duration(seconds: 3), // แสดงผลเป็นเวลา 3 วินาที
     );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -359,15 +462,32 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                         IconButton(
                           icon: Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pop(context,
+                                true); // ส่งค่า true กลับไปยังหน้าก่อนหน้า
                           },
                         ),
                         IconButton(
-                          icon:
-                              Icon(Icons.favorite_border, color: Colors.white),
-                          onPressed: () {
-                            // Implement favorite logic
-                          },
+                          icon: AnimatedSwitcher(
+                            duration: Duration(milliseconds: 300),
+                            transitionBuilder:
+                                (Widget child, Animation<double> animation) {
+                              return ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              );
+                            },
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              key: ValueKey<bool>(
+                                  isFavorite), // ใช้ ValueKey เพื่อให้ AnimatedSwitcher รู้ว่าไอคอนเปลี่ยนแปลง
+                              color: Colors.redAccent,
+                              size: 30.0,
+                            ),
+                          ),
+                          onPressed:
+                              _toggleFavoriteStatus, // กดเพื่อสลับสถานะรายการโปรด
                         ),
                       ],
                     ),

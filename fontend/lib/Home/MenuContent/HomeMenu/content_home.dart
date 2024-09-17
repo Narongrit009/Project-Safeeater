@@ -77,18 +77,56 @@ class _ContentHomeState extends State<ContentHome> {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
-          setState(() {
-            recommendedMenus = responseData['data'];
-          });
+          // Store the recommended menus
+          recommendedMenus = responseData['data'];
+
+          // Check favorite status for each recommended menu
+          for (var menu in recommendedMenus) {
+            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+          }
         }
       }
     } catch (error) {
       print('Error fetching recommended menus: $error');
     } finally {
       setState(() {
-        _isLoading = false;
+        _isLoading = false; // Stop loading in the end
       });
     }
+  }
+
+  Future<bool> checkFavoriteStatus(int menuId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedEmail =
+        prefs.getString('email'); // ดึง email จาก local storage
+
+    if (storedEmail == null) {
+      return false;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_CHECK_FAVORITE_FOOD'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'email': storedEmail,
+          'menu_id': menuId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          return result['is_favorite'] == 'true';
+        }
+      }
+    } catch (error) {
+      print('Error checking favorite status: $error');
+    }
+
+    return false;
   }
 
   @override
@@ -170,7 +208,12 @@ class _ContentHomeState extends State<ContentHome> {
   Widget _buildSearchBar(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/searchpage');
+        Navigator.pushNamed(context, '/searchpage').then((result) {
+          if (result == true) {
+            // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+            _loadUserData(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
+          }
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -378,12 +421,18 @@ class _ContentHomeState extends State<ContentHome> {
 
     return GestureDetector(
       onTap: () {
+        // การเปิดหน้า MenuDetailsPage
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => MenuDetailsPage(menuId: menu['menu_id']),
           ),
-        );
+        ).then((result) {
+          if (result == true) {
+            // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+            _loadUserData(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
+          }
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(
@@ -418,7 +467,12 @@ class _ContentHomeState extends State<ContentHome> {
                   Positioned(
                     top: 8.0,
                     right: 8.0,
-                    child: Icon(Icons.favorite_border, color: Colors.redAccent),
+                    child: Icon(
+                      menu['isFavorite']
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: Colors.redAccent,
+                    ),
                   ),
                 ],
               ),

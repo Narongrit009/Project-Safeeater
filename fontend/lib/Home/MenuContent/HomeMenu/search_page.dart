@@ -38,8 +38,16 @@ class _SearchPageState extends State<SearchPage> {
         final result = jsonDecode(response.body);
 
         if (result['status'] == 'success') {
+          List<Map<String, dynamic>> fetchedMenus =
+              List<Map<String, dynamic>>.from(result['data']);
+
+          // ตรวจสอบสถานะรายการโปรดในแต่ละเมนู
+          for (var menu in fetchedMenus) {
+            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+          }
+
           setState(() {
-            _searchResults = List<Map<String, dynamic>>.from(result['data']);
+            _searchResults = fetchedMenus;
           });
         } else {
           _showSnackBar('ไม่พบข้อมูลเมนูเริ่มต้น');
@@ -55,6 +63,40 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<bool> checkFavoriteStatus(int menuId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedEmail =
+        prefs.getString('email'); // ดึง email จาก local storage
+
+    if (storedEmail == null) {
+      return false;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_CHECK_FAVORITE_FOOD'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'email': storedEmail,
+          'menu_id': menuId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          return result['is_favorite'] == 'true';
+        }
+      }
+    } catch (error) {
+      print('Error checking favorite status: $error');
+    }
+
+    return false;
   }
 
   Future<void> _loadSearchHistory() async {
@@ -100,8 +142,16 @@ class _SearchPageState extends State<SearchPage> {
         final result = jsonDecode(response.body);
 
         if (result['status'] == 'success') {
+          List<Map<String, dynamic>> searchResults =
+              List<Map<String, dynamic>>.from(result['data']);
+
+          // ตรวจสอบสถานะรายการโปรดสำหรับแต่ละเมนู
+          for (var menu in searchResults) {
+            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+          }
+
           setState(() {
-            _searchResults = List<Map<String, dynamic>>.from(result['data']);
+            _searchResults = searchResults;
             _saveSearchHistory(
                 query); // Save search history only if results are found
           });
@@ -183,7 +233,7 @@ class _SearchPageState extends State<SearchPage> {
           IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(context, true); // ส่งค่า true กลับไปยังหน้าก่อนหน้า
             },
           ),
           Expanded(
@@ -327,12 +377,18 @@ class _SearchPageState extends State<SearchPage> {
 
         return GestureDetector(
           onTap: () {
+            // การเปิดหน้า MenuDetailsPage
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => MenuDetailsPage(menuId: food['menu_id']),
               ),
-            );
+            ).then((result) {
+              if (result == true) {
+                // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+                _fetchInitialMenu(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
+              }
+            });
           },
           child: Container(
             margin: const EdgeInsets.only(
@@ -367,8 +423,12 @@ class _SearchPageState extends State<SearchPage> {
                       Positioned(
                         top: 8.0,
                         right: 8.0,
-                        child: Icon(Icons.favorite_border,
-                            color: Colors.redAccent),
+                        child: Icon(
+                          food['isFavorite'] == true
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Colors.redAccent,
+                        ),
                       ),
                     ],
                   ),
