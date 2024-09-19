@@ -11,7 +11,7 @@
  Target Server Version : 100428 (10.4.28-MariaDB)
  File Encoding         : 65001
 
- Date: 23/08/2024 14:49:24
+ Date: 20/09/2024 04:05:26
 */
 
 SET NAMES utf8mb4;
@@ -33,9 +33,12 @@ CREATE TABLE `users_health_conditions`  (
 -- ----------------------------
 -- Records of users_health_conditions
 -- ----------------------------
-INSERT INTO `users_health_conditions` VALUES (1, 1);
-INSERT INTO `users_health_conditions` VALUES (1, 2);
-INSERT INTO `users_health_conditions` VALUES (2, 2);
-INSERT INTO `users_health_conditions` VALUES (3, 3);
+INSERT INTO `users_health_conditions` VALUES (35, 0);
+INSERT INTO `users_health_conditions` VALUES (36, 3);
+INSERT INTO `users_health_conditions` VALUES (37, 0);
+INSERT INTO `users_health_conditions` VALUES (38, 2);
+INSERT INTO `users_health_conditions` VALUES (40, 1);
+INSERT INTO `users_health_conditions` VALUES (41, 0);
+INSERT INTO `users_health_conditions` VALUES (42, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;
