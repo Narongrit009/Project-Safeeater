@@ -6,23 +6,25 @@ header('Content-Type: application/json');
 
 include "./conn.php";
 
-// Set headers to handle JSON data
-header('Content-Type: application/json');
-
+// ตรวจสอบ method ว่าเป็น POST หรือไม่
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if the required fields are present
-    if (isset($_POST['user_id'], $_POST['menu_id'], $_POST['is_edible'])) {
-        $user_id = intval($_POST['user_id']);
-        $menu_id = intval($_POST['menu_id']);
-        $is_edible = $_POST['is_edible'];
+    // รับข้อมูล JSON จาก request body
+    $data = json_decode(file_get_contents('php://input'), true);
 
-        // Prepare SQL query to insert data into meal_photo_history
+    // ตรวจสอบว่าได้รับข้อมูลที่จำเป็นหรือไม่
+    if (isset($data['user_id'], $data['menu_id'], $data['is_edible'])) {
+        $user_id = intval($data['user_id']);
+        $menu_id = intval($data['menu_id']);
+        $is_edible = $data['is_edible'];
+
+        // เตรียมคำสั่ง SQL เพื่อ insert ข้อมูลเข้าไปในตาราง meal_photo_history
         $sql = "INSERT INTO meal_photo_history (user_id, menu_id, is_edible, created_at)
                 VALUES (?, ?, ?, NOW())";
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('iis', $user_id, $menu_id, $is_edible);
 
+            // ตรวจสอบการทำงานของคำสั่ง SQL
             if ($stmt->execute()) {
                 echo json_encode(['status' => 'success', 'message' => 'Meal photo history saved successfully.'], JSON_UNESCAPED_UNICODE);
             } else {
@@ -40,5 +42,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
 }
 
-// Close the database connection
+// ปิดการเชื่อมต่อฐานข้อมูล
 $conn->close();

@@ -15,23 +15,24 @@ if (isset($data['email']) && !empty($data['email'])) {
     // ดึงข้อมูลผู้ใช้จาก email
     $user_query = $conn->prepare("
         SELECT
-            mh.history_id,
-            u.email,
-            fm.menu_id,
-            fm.menu_name,
-            mh.meal_time,
-            mh.is_edible,
-            fm.image_url
+            mph.history_id,
+						mi.menu_id,
+						mi.menu_name,
+						mi.image_url,
+						mi.ingredient_list,
+						mi.disease_list,
+            mph.is_edible,
+            mph.created_at
         FROM
-            meal_history mh
+            meal_photo_history mph
         JOIN
-            users u ON mh.user_id = u.user_id
-        JOIN
-            food_menu fm ON mh.menu_id = fm.menu_id
+            users u ON mph.user_id = u.user_id
+				JOIN
+            food_photo_menu mi ON mph.menu_id = mi.menu_id
         WHERE
             u.email = ?
         ORDER BY
-            mh.meal_time DESC
+            mph.created_at DESC;
     ");
 
     $user_query->bind_param("s", $email);
@@ -41,6 +42,8 @@ if (isset($data['email']) && !empty($data['email'])) {
     if ($result->num_rows > 0) {
         $rows = [];
         while ($row = $result->fetch_assoc()) {
+            // สร้าง URL เต็มรูปแบบสำหรับ image_url
+            $row['image_url'] = "http://" . $_SERVER['HTTP_HOST'] . "/safeeater/uploads/photos/" . $row['image_url'];
             $rows[] = $row;
         }
         echo json_encode(["status" => "success", "data" => $rows]);
