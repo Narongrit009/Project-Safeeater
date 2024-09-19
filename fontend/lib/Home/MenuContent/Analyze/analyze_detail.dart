@@ -130,105 +130,140 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
         return;
       }
 
-      // ตรวจสอบ URL
-      final String? url = dotenv.env['API_URL_INSERT_MEAL_PHOTO_HISTORY'];
-      if (url == null || url.isEmpty) {
+      // ตรวจสอบ URL สำหรับ API ต่างๆ
+      final String? url1 = dotenv.env['API_URL_INSERT_FOOD_PHOTO_MENU'];
+      final String? url2 = dotenv.env['API_URL_INSERT_MEAL_PHOTO_HISTORY'];
+
+      if (url1 == null || url1.isEmpty || url2 == null || url2.isEmpty) {
         _showSnackBar('URL ไม่ถูกต้อง');
         return;
       }
 
-      // Preparing MultipartRequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
+      // เพิ่มวัตถุดิบที่ได้รับจากฐานข้อมูลลงใน ingredient_list
+      List<String> updatedIngredients = List.from(widget.ingredients);
+      for (var ingredient in ingredientDetails) {
+        if (!updatedIngredients.contains(ingredient['ingredient_name'])) {
+          updatedIngredients.add(ingredient['ingredient_name']);
+        }
+      }
 
-      // Adding form fields (POST data)
-      request.fields['user_id'] = userId.toString();
-      request.fields['menu_name'] = widget.dishName;
-      // แปลงลิสต์ ingredients เป็น JSON string
-      request.fields['ingredient_list'] = jsonEncode(widget.ingredients);
+      // เพิ่มวัตถุดิบที่แพ้ลงใน ingredient_list ถ้ามี
+      if (matchingAllergen != null &&
+          !updatedIngredients.contains(matchingAllergen)) {
+        updatedIngredients.add(matchingAllergen!);
+      }
 
-// แปลงลิสต์ diseaseRisks เป็น JSON string
-      request.fields['disease_list'] = jsonEncode(widget.diseaseRisks);
-      request.fields['is_edible'] = isEdible;
+      // Preparing first request (API_URL_INSERT_FOOD_PHOTO_MENU)
+      var request1 = http.MultipartRequest('POST', Uri.parse(url1));
+      request1.fields['user_id'] = userId.toString();
+      request1.fields['menu_name'] = widget.dishName;
+      request1.fields['ingredient_list'] = jsonEncode(
+          updatedIngredients); // ใช้ updatedIngredients ที่อัปเดตแล้ว
+      request1.fields['disease_list'] = jsonEncode(widget.diseaseRisks);
 
-      // Adding the image file (Files data)
+      // Adding image to the first request
       if (imageFile != null) {
-        // ใช้ imageFile จากเครื่อง
         print('Uploading image from file: ${imageFile.path}');
-        request.files
+        request1.files
             .add(await http.MultipartFile.fromPath('photo', imageFile.path));
       } else if (webImage != null) {
-        // ใช้ webImage จาก byte array
         print('Uploading web image');
-        request.files.add(http.MultipartFile.fromBytes('photo', webImage,
+        request1.files.add(http.MultipartFile.fromBytes('photo', webImage,
             filename: 'web_image.png'));
       } else {
         _showSnackBar('ไม่มีรูปภาพที่จะอัปโหลด');
         return;
       }
 
-      // ส่งข้อมูลไปยังเซิร์ฟเวอร์
-      var response = await request.send();
+      // Sending first request (API_URL_INSERT_FOOD_PHOTO_MENU)
+      var response1 = await request1.send();
 
-      // ตรวจสอบ response จากเซิร์ฟเวอร์
-      if (response.statusCode == 200) {
-        var responseData = await http.Response.fromStream(response);
-        var result = jsonDecode(responseData.body);
-        if (result['status'] == 'success') {
-          showDialog(
-            context: context,
-            barrierDismissible: false, // Prevent closing by tapping outside
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Colors.white, // White background for clarity
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Success animation using Lottie
-                    Lottie.asset(
-                      'animations/correct.json',
-                      width: 150,
-                      height: 150,
-                      repeat: false,
+      // Handling response from the first request
+      if (response1.statusCode == 200) {
+        var responseData1 = await http.Response.fromStream(response1);
+        var result1 = jsonDecode(responseData1.body);
+        if (result1['status'] == 'success') {
+          print(
+              'Response from first API (API_URL_INSERT_FOOD_PHOTO_MENU): ${responseData1.body}');
+
+          // Extract the menu_id from the first API response
+          int menuId = result1['menu_id'];
+
+          // Preparing second request (API_URL_INSERT_MEAL_PHOTO_HISTORY)
+          var request2 = http.MultipartRequest('POST', Uri.parse(url2));
+          request2.fields['user_id'] = userId.toString();
+          request2.fields['menu_id'] =
+              menuId.toString(); // Use the received menu_id
+          request2.fields['is_edible'] = isEdible;
+
+          // Sending second request (API_URL_INSERT_MEAL_PHOTO_HISTORY)
+          var response2 = await request2.send();
+
+          // Handling response from the second request
+          if (response2.statusCode == 200) {
+            var responseData2 = await http.Response.fromStream(response2);
+            var result2 = jsonDecode(responseData2.body);
+            if (result2['status'] == 'success') {
+              // Show success dialog after both requests succeed
+              showDialog(
+                context: context,
+                barrierDismissible: false, // Prevent closing by tapping outside
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor:
+                        Colors.white, // White background for clarity
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'บันทึกเมนูอาหารสำเร็จ!',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green, // Text color for success
-                      ),
-                      textAlign: TextAlign.center,
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Success animation using Lottie
+                        Lottie.asset(
+                          'animations/correct.json',
+                          width: 150,
+                          height: 150,
+                          repeat: false,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'บันทึกเมนูอาหารสำเร็จ!',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green, // Text color for success
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'ระบบได้บันทึกเมนูของคุณเรียบร้อยแล้ว',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'ระบบได้บันทึกเมนูของคุณเรียบร้อยแล้ว',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                  );
+                },
               );
-            },
-          );
 
-          // Delay for 2 seconds to allow user to see the success message
-          await Future.delayed(Duration(seconds: 3));
-          Navigator.of(context).pop(); // Go back to the previous page
+              // Delay for 2 seconds to allow user to see the success message
+              await Future.delayed(Duration(seconds: 3));
+              Navigator.of(context).pop(); // Go back to the previous page
+            } else {
+              _showSnackBar('เกิดข้อผิดพลาดใน API 2: ${result2['message']}');
+            }
+          } else {
+            _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์ API 2');
+          }
         } else {
-          _showSnackBar(
-              'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${result['message']}');
+          _showSnackBar('เกิดข้อผิดพลาดใน API 1: ${result1['message']}');
         }
-        print('Response: ${responseData.body}');
       } else {
-        _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-        print('Error status code: ${response.statusCode}');
+        _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์ API 1');
       }
     } catch (error) {
       _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');

@@ -40,10 +40,12 @@ class _SearchPageState extends State<SearchPage> {
         if (result['status'] == 'success') {
           List<Map<String, dynamic>> fetchedMenus =
               List<Map<String, dynamic>>.from(result['data']);
+          final historyType = 'meal';
 
           // ตรวจสอบสถานะรายการโปรดในแต่ละเมนู
           for (var menu in fetchedMenus) {
-            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+            menu['isFavorite'] =
+                await checkFavoriteStatus(menu['menu_id'], historyType);
           }
 
           setState(() {
@@ -65,13 +67,12 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  Future<bool> checkFavoriteStatus(int menuId) async {
+  Future<bool> checkFavoriteStatus(int menuId, String historyType) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? storedEmail =
-        prefs.getString('email'); // ดึง email จาก local storage
+    String? storedEmail = prefs.getString('email');
 
     if (storedEmail == null) {
-      return false;
+      return false; // No email stored
     }
 
     try {
@@ -83,20 +84,23 @@ class _SearchPageState extends State<SearchPage> {
         body: jsonEncode(<String, dynamic>{
           'email': storedEmail,
           'menu_id': menuId,
+          'history_type': historyType, // Pass the history type
         }),
       );
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         if (result['status'] == 'success') {
-          return result['is_favorite'] == 'true';
+          // print('Favorite status for menu $menuId: ${result['is_favorite']}');
+          return result['is_favorite'] ==
+              'true'; // Ensure this returns the correct value
         }
       }
     } catch (error) {
       print('Error checking favorite status: $error');
     }
 
-    return false;
+    return false; // Default to false if any error occurs
   }
 
   Future<void> _loadSearchHistory() async {
@@ -144,10 +148,12 @@ class _SearchPageState extends State<SearchPage> {
         if (result['status'] == 'success') {
           List<Map<String, dynamic>> searchResults =
               List<Map<String, dynamic>>.from(result['data']);
+          final historyType = 'meal';
 
           // ตรวจสอบสถานะรายการโปรดสำหรับแต่ละเมนู
           for (var menu in searchResults) {
-            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+            menu['isFavorite'] =
+                await checkFavoriteStatus(menu['menu_id'], historyType);
           }
 
           setState(() {

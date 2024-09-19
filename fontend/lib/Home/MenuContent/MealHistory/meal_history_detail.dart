@@ -5,16 +5,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 
-class MenuDetailsPage extends StatefulWidget {
+class HistoryDetailsPage extends StatefulWidget {
   final int menuId;
+  final bool isPhoto; // Determine if it's a photo or general menu
+  final String sourcePage;
 
-  MenuDetailsPage({required this.menuId});
+  HistoryDetailsPage(
+      {required this.menuId, required this.isPhoto, required this.sourcePage});
 
   @override
-  _MenuDetailsPageState createState() => _MenuDetailsPageState();
+  _HistoryDetailsPageState createState() => _HistoryDetailsPageState();
 }
 
-class _MenuDetailsPageState extends State<MenuDetailsPage> {
+class _HistoryDetailsPageState extends State<HistoryDetailsPage> {
   List<Map<String, dynamic>>? menuDetails;
   bool _isLoading = true;
   List<String> foodAllergies = [];
@@ -26,6 +29,10 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
     super.initState();
     _fetchUserProfileAndMenuDetails();
     _checkFavoriteStatus();
+
+    // Debug print to check the value of isPhoto
+    print("Is this a photo history? ${widget.isPhoto}");
+    print("Is this a MenuID? ${widget.menuId}");
   }
 
   Future<void> _fetchUserProfileAndMenuDetails() async {
@@ -36,7 +43,6 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
   Future<void> _checkFavoriteStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? email = prefs.getString('email');
-    final String historyType = "meal";
 
     if (email != null) {
       try {
@@ -48,7 +54,8 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
           body: jsonEncode(<String, dynamic>{
             'email': email,
             'menu_id': widget.menuId,
-            'history_type': historyType,
+            'history_type':
+                widget.isPhoto ? 'photo' : 'meal', // ส่งค่า history_type
           }),
         );
 
@@ -69,7 +76,6 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
   Future<void> _toggleFavoriteStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? email = prefs.getString('email');
-    final String historyType = "meal";
 
     if (email == null) {
       _showSnackBar('ไม่พบอีเมลในระบบ');
@@ -86,7 +92,8 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
           'email': email,
           'menu_id': widget.menuId,
           'is_favorite': isFavorite ? 'false' : 'true', // สลับสถานะ
-          'history_type': historyType,
+          'history_type':
+              widget.isPhoto ? 'photo' : 'meal', // ส่งค่า history_type
         }),
       );
 
@@ -153,8 +160,16 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
 
   Future<void> _fetchMenuDetails() async {
     try {
+      // Choose the correct API URL based on whether it's a photo or a general menu
+      final apiUrl = widget.isPhoto
+          ? dotenv.env['API_URL_MENU_PHOTO_DETAILS']
+          : dotenv.env['API_URL_MENU_DETAILS'];
+
+      // Debug print to ensure we're hitting the correct API
+      print("Fetching data from API: $apiUrl");
+
       final response = await http.post(
-        Uri.parse(dotenv.env['API_URL_MENU_DETAILS'] ?? ''),
+        Uri.parse(apiUrl ?? ''),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -163,14 +178,26 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
+
         if (result['status'] == 'success') {
-          final menuData = List<Map<String, dynamic>>.from(result['data']);
-          setState(() {
-            menuDetails = menuData;
-            _isLoading = false;
-            // Check for allergy conflicts
-            _checkAllergyConflicts();
-          });
+          if (widget.isPhoto) {
+            // Since the photo menu details return a single map, handle it accordingly
+            setState(() {
+              menuDetails = [
+                result['data']
+              ]; // Wrap in a list to maintain consistency
+              _isLoading = false;
+              _checkAllergyConflicts();
+            });
+          } else {
+            // Handle general menu details which return a list
+            final menuData = List<Map<String, dynamic>>.from(result['data']);
+            setState(() {
+              menuDetails = menuData;
+              _isLoading = false;
+              _checkAllergyConflicts();
+            });
+          }
         } else {
           _showSnackBar('ไม่พบรายละเอียดเมนู');
         }
@@ -194,94 +221,6 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
           break;
         }
       }
-    }
-  }
-
-  Future<void> _insertMealHistory(String isEdible) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      int? userId =
-          prefs.getInt('user_id'); // Fetching user_id from SharedPreferences
-      if (userId == null) {
-        _showSnackBar('ไม่พบ user_id ในระบบ');
-        return;
-      }
-
-      final response = await http.post(
-        Uri.parse(dotenv.env['API_URL_INSERT_MEAL_HISTORY'] ?? ''),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'user_id': userId,
-          'menu_id': widget.menuId,
-          'is_edible': isEdible,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['status'] == 'success') {
-          // Display success confirmation dialog
-          showDialog(
-            context: context,
-            barrierDismissible: false, // Prevent closing by tapping outside
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Colors.white, // White background for clarity
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Success animation using Lottie
-                    Lottie.asset(
-                      'animations/correct.json',
-                      width: 150,
-                      height: 150,
-                      repeat: false,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'บันทึกเมนูอาหารสำเร็จ!',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green, // Text color for success
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-
-          // Delay for 2 seconds to allow user to see the success message
-          await Future.delayed(Duration(seconds: 3));
-
-          // Close the dialog and return to the previous screen
-          Navigator.of(context).pop(); // Close the success dialog
-          Navigator.pop(context, true); // ส่งค่า true กลับไปยังหน้าก่อนหน้า
-        } else {
-          _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-        }
-      } else {
-        _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-      }
-    } catch (error) {
-      _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-      print('Error inserting meal history: $error');
     }
   }
 
@@ -366,6 +305,101 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
         );
       },
     );
+  }
+
+  Future<void> _insertMealHistory(String isEdible) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      int? userId =
+          prefs.getInt('user_id'); // Fetching user_id from SharedPreferences
+
+      if (userId == null) {
+        _showSnackBar('ไม่พบ user_id ในระบบ');
+        return;
+      }
+
+      // ตรวจสอบว่าเป็นเมนู photo หรือ meal เพื่อเลือก API ที่ถูกต้อง
+      final apiUrl = widget.isPhoto
+          ? dotenv
+              .env['API_URL_INSERT_MEAL_PHOTO_HISTORY2'] // ใช้ API สำหรับ photo
+          : dotenv.env['API_URL_INSERT_MEAL_HISTORY']; // ใช้ API สำหรับ meal
+
+      final response = await http.post(
+        Uri.parse(apiUrl ?? ''), // ใช้ URL ที่ถูกต้องตามประเภทเมนู
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'user_id': userId,
+          'menu_id': widget.menuId,
+          'is_edible': isEdible,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          // แสดงข้อความความสำเร็จ
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent closing by tapping outside
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.white, // White background for clarity
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Success animation using Lottie
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 150,
+                      height: 150,
+                      repeat: false,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'บันทึกเมนูอาหารสำเร็จ!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // Text color for success
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+
+          // Delay for 2 seconds to allow user to see the success message
+          await Future.delayed(Duration(seconds: 3));
+
+          // Close the dialog and return to the previous screen
+          Navigator.of(context).pop(); // Close the success dialog
+          Navigator.pop(context, true); // ส่งค่า true กลับไปยังหน้าก่อนหน้า
+        } else {
+          _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        }
+      } else {
+        _showSnackBar('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+      }
+    } catch (error) {
+      _showSnackBar('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      print('Error inserting meal history: $error');
+    }
   }
 
   void _showSnackBar(String message) {
@@ -491,7 +525,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                             ),
                           ),
                           onPressed:
-                              _toggleFavoriteStatus, // กดเพื่อสลับสถานะรายการโปรด
+                              _toggleFavoriteStatus, // กดเพื่อเปลี่ยนสถานะรายการโปรด
                         ),
                       ],
                     ),
@@ -515,7 +549,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                   ],
                 ),
               ),
-              SizedBox(height: 60.0),
+              SizedBox(height: 80.0),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -692,7 +726,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: '$diseaseName : ', // ชื่อโรค
+                                    text: '$diseaseName ', // ชื่อโรค
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16.0,
@@ -722,7 +756,7 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
         Stack(
           children: [
             Positioned(
-              top: 120.0,
+              top: 140.0,
               left: MediaQuery.of(context).size.width / 2 - 100.0,
               child: Container(
                 decoration: BoxDecoration(
@@ -744,57 +778,57 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                 ),
               ),
             ),
-            // เนื้อหาอื่นๆ ที่จะซ้อนด้านล่างปุ่ม
-            Positioned(
-              bottom: 16.0, // ติดขอบล่าง
-              left: 16.0,
-              right: 16.0,
-              child: Container(
-                width: double.infinity,
-                height: 60.0, // ปรับขนาดปุ่มเพื่อให้ใหญ่ขึ้น
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0),
-                  gradient: LinearGradient(
-                    colors: matchingAllergen != null
-                        ? [Colors.redAccent, Colors.red]
-                        : [Color(0xFF59DFAE), Color(0xFF74FF07)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
+            if (widget.sourcePage == 'FavoritesPage')
+              Positioned(
+                bottom: 16.0,
+                left: 16.0,
+                right: 16.0,
+                child: Container(
+                  width: double.infinity,
+                  height: 60.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    gradient: LinearGradient(
+                      colors: matchingAllergen != null
+                          ? [Colors.redAccent, Colors.red]
+                          : [Color(0xFF59DFAE), Color(0xFF74FF07)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    elevation: 0,
                   ),
-                  onPressed: () {
-                    matchingAllergen != null
-                        ? _showConfirmationDialog(
-                            isEdible: 'false',
-                            message:
-                                'จานนี้มีส่วนผสมของ $matchingAllergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?')
-                        : _showConfirmationDialog(
-                            isEdible: 'true',
-                            message:
-                                'คุณต้องการเพิ่มเมนูนี้ในประวัติอาหารของคุณหรือไม่?');
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: Text(
-                      'เพิ่มไปยังประวัติการรับประทาน',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      matchingAllergen != null
+                          ? _showConfirmationDialog(
+                              isEdible: 'false',
+                              message:
+                                  'จานนี้มีส่วนผสมของ $matchingAllergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ คุณแน่ใจหรือไม่ว่าต้องการเพิ่มเมนูนี้?')
+                          : _showConfirmationDialog(
+                              isEdible: 'true',
+                              message:
+                                  'คุณต้องการเพิ่มเมนูนี้ในประวัติอาหารของคุณหรือไม่?');
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Text(
+                        'เพิ่มไปยังประวัติการรับประทาน',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         )
       ],

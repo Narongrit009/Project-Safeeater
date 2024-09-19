@@ -79,10 +79,12 @@ class _ContentHomeState extends State<ContentHome> {
         if (responseData['status'] == 'success') {
           // Store the recommended menus
           recommendedMenus = responseData['data'];
+          final historyType = 'meal';
 
           // Check favorite status for each recommended menu
           for (var menu in recommendedMenus) {
-            menu['isFavorite'] = await checkFavoriteStatus(menu['menu_id']);
+            menu['isFavorite'] =
+                await checkFavoriteStatus(menu['menu_id'], historyType);
           }
         }
       }
@@ -95,13 +97,12 @@ class _ContentHomeState extends State<ContentHome> {
     }
   }
 
-  Future<bool> checkFavoriteStatus(int menuId) async {
+  Future<bool> checkFavoriteStatus(int menuId, String historyType) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? storedEmail =
-        prefs.getString('email'); // ดึง email จาก local storage
+    String? storedEmail = prefs.getString('email');
 
     if (storedEmail == null) {
-      return false;
+      return false; // No email stored
     }
 
     try {
@@ -113,20 +114,23 @@ class _ContentHomeState extends State<ContentHome> {
         body: jsonEncode(<String, dynamic>{
           'email': storedEmail,
           'menu_id': menuId,
+          'history_type': historyType, // Pass the history type
         }),
       );
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         if (result['status'] == 'success') {
-          return result['is_favorite'] == 'true';
+          // print('Favorite status for menu $menuId: ${result['is_favorite']}');
+          return result['is_favorite'] ==
+              'true'; // Ensure this returns the correct value
         }
       }
     } catch (error) {
       print('Error checking favorite status: $error');
     }
 
-    return false;
+    return false; // Default to false if any error occurs
   }
 
   @override
@@ -309,7 +313,12 @@ class _ContentHomeState extends State<ContentHome> {
                     MaterialPageRoute(
                       builder: (context) => RecommendHealthMenuPage(),
                     ),
-                  );
+                  ).then((result) {
+                    if (result == true) {
+                      // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+                      _loadUserData(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
+                    }
+                  });
                 },
                 child: Text(
                   'ดูทั้งหมด',

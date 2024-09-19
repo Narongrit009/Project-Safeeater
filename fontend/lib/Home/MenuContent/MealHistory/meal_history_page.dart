@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'meal_history_detail.dart';
 
 class MealHistoryPage extends StatefulWidget {
   @override
@@ -23,12 +24,13 @@ class _MealHistoryPageState extends State<MealHistoryPage>
   List<int> selectedInedibleItems = [];
   List<Map<String, dynamic>> edibleMeals = [];
   List<Map<String, dynamic>> inedibleMeals = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _fetchMealHistory();
+    _loadUserData();
     initializeDateFormatting('th_TH', null).then((_) {
       setState(() {});
     });
@@ -40,6 +42,19 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     super.dispose();
   }
 
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+
+    if (email != null) {
+      await _fetchMealHistory();
+    } else {
+      setState(() {
+        _isLoading = false; // Stop loading if no email is found
+      });
+    }
+  }
+
   // ฟังก์ชันนี้ใช้สำหรับสลับระหว่างการดึงข้อมูลของเมนูอาหารทั่วไปและประวัติการถ่ายรูป
   Future<void> _fetchMealHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -47,6 +62,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
 
     if (storedEmail != null) {
       try {
+        // Identify the API based on isViewingPhotoHistory
         final String apiUrl = isViewingPhotoHistory
             ? dotenv.env['API_URL_MEAL_PHOTO_HISTORY'] ?? ''
             : dotenv.env['API_URL_MEAL_HISTORY'] ?? '';
@@ -60,29 +76,40 @@ class _MealHistoryPageState extends State<MealHistoryPage>
         if (response.statusCode == 200) {
           final result = jsonDecode(response.body);
           if (result['status'] == 'success') {
-            setState(() {
-              final List<dynamic> mealsData = result['data'];
+            final List<dynamic> mealsData = result['data'];
 
+            // Determine the history type (photo or regular meal)
+            final historyType = isViewingPhotoHistory ? 'photo' : 'meal';
+
+            // Check favorite status for each meal
+            final mealsWithFavorites =
+                await Future.wait(mealsData.map((menu) async {
+              menu['isFavorite'] =
+                  await checkFavoriteStatus(menu['menu_id'], historyType);
+              return menu;
+            }).toList());
+
+            setState(() {
               if (isViewingPhotoHistory) {
-                // ประวัติอาหารที่ถ่ายเอง
-                edibleMeals = mealsData
+                // Handle photo meal history
+                edibleMeals = mealsWithFavorites
                     .where((meal) => meal['is_edible'] == 'true')
                     .map<Map<String, dynamic>>(
                         (meal) => Map<String, dynamic>.from(meal))
                     .toList();
-                inedibleMeals = mealsData
+                inedibleMeals = mealsWithFavorites
                     .where((meal) => meal['is_edible'] == 'false')
                     .map<Map<String, dynamic>>(
                         (meal) => Map<String, dynamic>.from(meal))
                     .toList();
               } else {
-                // ประวัติอาหารทั่วไป
-                edibleMeals = mealsData
+                // Handle regular meal history
+                edibleMeals = mealsWithFavorites
                     .where((meal) => meal['is_edible'] == 'true')
                     .map<Map<String, dynamic>>(
                         (meal) => Map<String, dynamic>.from(meal))
                     .toList();
-                inedibleMeals = mealsData
+                inedibleMeals = mealsWithFavorites
                     .where((meal) => meal['is_edible'] == 'false')
                     .map<Map<String, dynamic>>(
                         (meal) => Map<String, dynamic>.from(meal))
@@ -102,6 +129,42 @@ class _MealHistoryPageState extends State<MealHistoryPage>
     } else {
       _showSnackBar('ไม่พบอีเมลที่จัดเก็บไว้');
     }
+  }
+
+  Future<bool> checkFavoriteStatus(int menuId, String historyType) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedEmail = prefs.getString('email');
+
+    if (storedEmail == null) {
+      return false; // No email stored
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(dotenv.env['API_URL_CHECK_FAVORITE_FOOD'] ?? ''),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'email': storedEmail,
+          'menu_id': menuId,
+          'history_type': historyType, // Pass the history type
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['status'] == 'success') {
+          // print('Favorite status for menu $menuId: ${result['is_favorite']}');
+          return result['is_favorite'] ==
+              'true'; // Ensure this returns the correct value
+        }
+      }
+    } catch (error) {
+      print('Error checking favorite status: $error');
+    }
+
+    return false; // Default to false if any error occurs
   }
 
   Future<void> _deleteSelectedItems() async {
@@ -539,21 +602,23 @@ class _MealHistoryPageState extends State<MealHistoryPage>
       padding: const EdgeInsets.all(16.0),
       itemCount: meals.length,
       itemBuilder: (context, index) {
-        final meal = meals[index];
+        final menu = meals[index]; // ดึงข้อมูลของเมนูจากรายการ
         return _buildMealHistoryItem(
           index,
-          meal['menu_name'],
-          meal['created_at'],
-          meal['image_url'],
-          meal['is_edible'] == 'true',
-          isEdible,
+          menu['menu_name'], // ส่งชื่อเมนู
+          menu['created_at'], // ส่งเวลาที่สร้าง
+          menu['image_url'], // ส่ง URL ของรูปภาพ
+          menu['isFavorite'], // ส่งสถานะ isFavorite เพื่อแสดงไอคอนรายการโปรด
+          menu['is_edible'] == 'true', // ส่งสถานะเมนูว่าสามารถทานได้หรือไม่
+          menu['menu_id'],
         );
       },
     );
   }
 
   Widget _buildMealHistoryItem(int index, String? name, String? time,
-      String? imageUrl, bool isFavorite, bool isEdible) {
+      String? imageUrl, bool isFavorite, bool isEdible, int menuId) {
+    // เพิ่ม menuId เข้ามา
     final selectedItems =
         isEdible ? selectedEdibleItems : selectedInedibleItems;
 
@@ -581,6 +646,24 @@ class _MealHistoryPageState extends State<MealHistoryPage>
               selectedItems.remove(index);
             } else {
               selectedItems.add(index);
+            }
+          });
+        } else {
+          // ส่งค่า menuId ไปยัง HistoryDetailsPage และเช็คว่าเป็นอาหารที่ถ่ายรูปหรืออาหารทั่วไป
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HistoryDetailsPage(
+                menuId: menuId,
+                sourcePage: 'HistoryPage',
+                isPhoto:
+                    isViewingPhotoHistory, // เช็คว่าเป็นเมนูอาหารถ่ายรูปหรือไม่
+              ),
+            ),
+          ).then((result) {
+            if (result == true) {
+              // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+              _loadUserData(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
             }
           });
         }
@@ -618,9 +701,7 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name != null
-                          ? name
-                          : 'ไม่ทราบชื่อเมนู', // กรณี menu_name เป็น null
+                      name ?? 'ไม่ทราบชื่อเมนู', // กรณี menu_name เป็น null
                       style: TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
@@ -646,14 +727,9 @@ class _MealHistoryPageState extends State<MealHistoryPage>
                       selectedItems.contains(index) ? Colors.blue : Colors.grey,
                 )
               else
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () {
-                    // Implement favorite toggle logic
-                  },
+                Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.redAccent,
                 ),
             ],
           ),
