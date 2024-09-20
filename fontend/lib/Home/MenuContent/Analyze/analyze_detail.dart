@@ -788,6 +788,8 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
                     '${ingredientDetails['vitamin_c'] ?? 'ไม่ระบุ'} มิลลิกรัม'),
                 _buildNutritionRow('โซเดียม',
                     '${ingredientDetails['sodium'] ?? 'ไม่ระบุ'} มิลลิกรัม'),
+                _buildNutritionRow('น้ำตาล',
+                    '${ingredientDetails['sugar'] ?? 'ไม่ระบุ'} กรัม'),
                 SizedBox(height: 20.0),
                 ElevatedButton(
                   onPressed: () {

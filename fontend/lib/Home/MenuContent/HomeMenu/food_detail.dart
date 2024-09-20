@@ -898,6 +898,8 @@ class _MenuDetailsPageState extends State<MenuDetailsPage> {
                     'วิตามินซี', '${ingredientDetails['vitamin_c']} มิลลิกรัม'),
                 _buildNutritionRow(
                     'โซเดียม', '${ingredientDetails['sodium']} มิลลิกรัม'),
+                _buildNutritionRow(
+                    'น้ำตาล', '${ingredientDetails['sugar']} กรัม'),
                 SizedBox(height: 20.0),
                 ElevatedButton(
                   onPressed: () {
