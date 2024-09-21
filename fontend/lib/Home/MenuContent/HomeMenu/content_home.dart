@@ -106,15 +106,6 @@ class _ContentHomeState extends State<ContentHome> {
             style: TextStyle(fontSize: 16.0),
           ),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // ปิดป๊อปอัพ
-              },
-              child: Text(
-                'ยกเลิก',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // ปิดป๊อปอัพก่อน
