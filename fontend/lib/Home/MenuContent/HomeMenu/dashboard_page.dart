@@ -32,7 +32,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _fetchSugarData() async {
-    String? email = "sa@gmail.com"; // Example email, replace with actual value
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
 
     if (email != null) {
       try {
