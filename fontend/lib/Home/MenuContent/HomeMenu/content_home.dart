@@ -54,14 +54,88 @@ class _ContentHomeState extends State<ContentHome> {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
+          final data = responseData['data'];
+
+          // ตรวจสอบข้อมูลที่ขาด
+          bool missingData =
+              (data['username'] == null || data['username'].isEmpty) ||
+                  (data['tel'] == null || data['tel'].isEmpty) ||
+                  (data['gender'] == null || data['gender'].isEmpty) ||
+                  (data['birthday'] == null || data['birthday'].isEmpty) ||
+                  data['height'] == null ||
+                  data['weight'] == null;
+
+          if (missingData) {
+            _showIncompleteProfilePopup(); // เรียกฟังก์ชันแสดงป๊อปอัพ
+          }
+
+          // ตั้งค่า username และอัปเดต State
           setState(() {
-            username = responseData['data']['username'];
+            username = data['username'] ?? 'Guest';
           });
         }
       }
     } catch (error) {
       print('Error fetching profile data: $error');
     }
+  }
+
+  void _showIncompleteProfilePopup() {
+    showDialog(
+      context: context,
+      barrierDismissible:
+          false, // ทำให้ไม่สามารถปิดป๊อปอัพโดยการคลิกนอกหน้าจอได้
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // เพิ่มมุมโค้งให้ป๊อปอัพ
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: Colors.orange, size: 30.0),
+              SizedBox(width: 8.0),
+              Text(
+                'ข้อมูลไม่ครบถ้วน',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Text(
+            'คุณมีข้อมูลที่ยังไม่ได้กรอก กรุณากรอกข้อมูลให้ครบถ้วน',
+            style: TextStyle(fontSize: 16.0),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิดป๊อปอัพ
+              },
+              child: Text(
+                'ยกเลิก',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิดป๊อปอัพก่อน
+                Navigator.pushNamed(context,
+                    '/userprofiles1'); // นำทางไปยังหน้า UserProfileStep1
+              },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0), // ปุ่มโค้งมน
+                ),
+                backgroundColor: Colors.blueAccent, // สีของปุ่ม
+              ),
+              child: Text(
+                'กรอกข้อมูล',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _fetchRecommendedMenu(String email) async {
