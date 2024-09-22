@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
-
+import 'dart:convert';
 import 'package:myapp_v01/LoginApp/ForgetPassword/verify_otp.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -37,54 +37,68 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         },
       );
 
+      print(phoneNumber);
+
       setState(() {
         _isLoading.value = false;
       });
 
       if (response.statusCode == 200) {
-        var data = response.body;
+        var data = jsonDecode(response.body); // แปลง response เป็น JSON
         print(data);
 
-        // Extract token from response (assuming it's in the JSON response)
-        _otpToken = data; // Adjust based on actual response structure
+        if (data['status'] == 'success') {
+          // ดึงค่า token จาก response
+          _otpToken = data['token'];
 
-        // Show OTP request success animation
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Lottie.asset(
-                    'animations/correct.json',
-                    width: 200,
-                    height: 200,
-                    repeat: false,
-                    reverse: false,
-                    animate: true,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'OTP ได้ถูกส่งไปยังโทรศัพท์ของคุณแล้ว',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+          // Show OTP request success animation
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 200,
+                      height: 200,
+                      repeat: false,
+                      reverse: false,
+                      animate: true,
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+                    SizedBox(height: 16),
+                    Text(
+                      'OTP ได้ถูกส่งไปยังโทรศัพท์ของคุณแล้ว',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
 
-        // Navigate to OTP verification screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VerifyOtpScreen(otpToken: _otpToken!),
-          ),
-        );
+          // ส่งค่า token ไปยัง VerifyOtpScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VerifyOtpScreen(
+                otpToken: _otpToken!,
+                phoneNumber: phoneNumber,
+              ), // ส่ง token ไป
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('ไม่สามารถส่ง OTP ได้'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
         print('Failed to request OTP. Error: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -274,6 +288,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         Spacer(flex: 2),
                       ],
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16.0, top: 40.0),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
                   ),
                 ),

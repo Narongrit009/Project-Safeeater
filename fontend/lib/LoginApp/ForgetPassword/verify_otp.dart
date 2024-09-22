@@ -4,12 +4,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:ui'; // Add this import
 
-import 'package:myapp_v01/LoginApp/ForgetPassword/reset_password.dart';
+import 'reset_password.dart'; // Import Reset Password Screen
 
 class VerifyOtpScreen extends StatefulWidget {
   final String otpToken;
+  final String phoneNumber;
 
-  VerifyOtpScreen({required this.otpToken});
+  VerifyOtpScreen({
+    required this.otpToken,
+    required this.phoneNumber,
+  });
 
   @override
   _VerifyOtpScreenState createState() => _VerifyOtpScreenState();
@@ -33,10 +37,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       var response = await http.post(
         Uri.parse(url),
         body: {
-          'token': widget.otpToken,
-          'otp': otp,
+          'token': widget.otpToken, // ส่ง token ที่ได้รับจากการ request OTP
+          'otp': otp, // ส่ง OTP ที่ผู้ใช้กรอก
         },
       );
+
+      print(widget.phoneNumber);
 
       setState(() {
         _isLoading.value = false;
@@ -46,43 +52,69 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         var data = response.body;
         print(data);
 
-        // Show OTP verification success animation
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Lottie.asset(
-                    'animations/correct.json',
-                    width: 200,
-                    height: 200,
-                    repeat: false,
-                    reverse: false,
-                    animate: true,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'OTP ถูกต้อง',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+        // ตรวจสอบว่า OTP ถูกต้อง
+        if (data.contains('success')) {
+          // ถ้า OTP ถูกต้อง แสดง animation แล้วไปยังหน้าถัดไป
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.white,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 200,
+                      height: 200,
+                      repeat: false,
+                      reverse: false,
+                      animate: true,
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+                    SizedBox(height: 16),
+                    Text(
+                      'รหัส OTP ถูกต้อง',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // Text color for success
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'รหัส OTP ของคุณถูกต้อง...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
 
-        // Navigate to reset password screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordScreen(),
-          ),
-        );
+          // หลังจากแสดงผล ให้ไปยังหน้า Reset Password
+          await Future.delayed(Duration(seconds: 2)); // หน่วงเวลา 2 วินาที
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResetPasswordScreen(
+                phoneNumber: widget.phoneNumber,
+              ), // ไปที่หน้าถัดไป
+            ),
+          );
+        } else {
+          // ถ้า OTP ไม่ถูกต้อง
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('OTP ไม่ถูกต้อง, กรุณาลองอีกครั้ง'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
         print('Failed to verify OTP. Error: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +222,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                       labelText: 'รหัส OTP',
                                       labelStyle:
                                           TextStyle(color: Colors.white),
-                                      hintText: '123456',
+                                      hintText: '1234',
                                       hintStyle: TextStyle(color: Colors.white),
                                       fillColor: Colors.white.withOpacity(0.3),
                                       filled: true,
