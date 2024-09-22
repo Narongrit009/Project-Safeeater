@@ -4,6 +4,10 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lottie/lottie.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class EditDataProfile extends StatefulWidget {
   final String email;
@@ -25,6 +29,9 @@ class _EditDataProfileState extends State<EditDataProfile> {
   List<String> filteredAllergies = [];
   TextEditingController allergyController = TextEditingController();
 
+  File? _profileImage;
+  Uint8List? _webImage;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +39,35 @@ class _EditDataProfileState extends State<EditDataProfile> {
     _fetchConditions();
     _fetchAllergies();
   }
+
+  Future<void> _pickImageFromFilePicker() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+    if (result != null) {
+      if (kIsWeb) {
+        setState(() {
+          _webImage = result.files.first.bytes;
+          _profileData['profile_image_name'] = result.files.first.name;
+        });
+      } else {
+        setState(() {
+          _profileImage = File(result.files.single.path!);
+          _profileData['profile_image_name'] = result.files.single.name;
+        });
+      }
+    }
+  }
+
+  // Future<void> _pickImage() async {
+  //   final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+  //   if (pickedFile != null) {
+  //     setState(() {
+  //       _profileImage = File(pickedFile.path);
+  //     });
+  //   }
+  // }
 
   Future<void> _fetchProfileData() async {
     try {
@@ -109,39 +145,60 @@ class _EditDataProfileState extends State<EditDataProfile> {
 
   Future<void> _saveProfileData() async {
     if (_formKey.currentState!.validate()) {
-      // Only include chronic_diseases and food_allergies if they are not empty
-      if (selectedConditions.isNotEmpty) {
-        _profileData['chronic_diseases'] = selectedConditions.join(', ');
-      }
-
-      if (selectedAllergies.isNotEmpty) {
-        _profileData['food_allergies'] = selectedAllergies.join(', ');
-      }
-
+      _formKey.currentState!.save(); // บันทึกข้อมูลจากฟอร์ม
       try {
-        final response = await http.post(
+        // สร้าง request
+        var request = http.MultipartRequest(
+          'POST',
           Uri.parse(dotenv.env['API_URL_EDIT_PROFILE'] ?? ''),
-          body: jsonEncode(_profileData),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
         );
 
-        if (response.statusCode == 200) {
-          final result = json.decode(response.body);
-          if (result['status'] == 'success') {
-            _showSnackBar('แก้ไขข้อมูลเรียบร้อยแล้ว');
-            Navigator.of(context).pop(); // กลับไปที่หน้าก่อนหน้า
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('ไม่สามารถบันทึกข้อมูลได้: ${result['message']}'),
-            ));
-          }
-        } else {
-          print('Failed to save profile data');
+        // เพิ่มข้อมูลฟิลด์ปกติ และแปลงค่าทุกฟิลด์เป็น String
+        request.fields['email'] = _profileData['email'].toString();
+        request.fields['username'] = _profileData['username'].toString();
+        request.fields['tel'] = _profileData['tel'].toString();
+        request.fields['gender'] = _profileData['gender'].toString();
+        request.fields['birthday'] = _profileData['birthday'].toString();
+        request.fields['height'] = _profileData['height'].toString();
+        request.fields['weight'] = _profileData['weight'].toString();
+        request.fields['chronic_diseases'] = selectedConditions.join(', ');
+        request.fields['food_allergies'] = selectedAllergies.join(', ');
+
+        // พิมพ์ข้อมูลที่กำลังจะส่งไป (สำหรับการตรวจสอบ)
+        print('Sending data:');
+        print(request.fields);
+
+        // การอัปโหลดรูปภาพ (ไม่บังคับ)
+        if (_profileImage != null) {
+          // กรณีมือถือหรือ desktop ที่ใช้ไฟล์จาก local
+          print('Uploading image from file: ${_profileImage!.path}');
+          request.files.add(await http.MultipartFile.fromPath(
+            'photo',
+            _profileImage!.path,
+          ));
+        } else if (_webImage != null) {
+          // กรณีเว็บที่ใช้ไฟล์จาก Memory
+          print('Uploading web image');
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            _webImage!,
+            filename: 'web_image.png', // ตั้งชื่อไฟล์
+          ));
         }
-      } catch (error) {
-        print('Error saving profile data: $error');
+
+        // ส่ง request
+        var response = await request.send();
+
+        // ตรวจสอบสถานะการตอบกลับ
+        if (response.statusCode == 200) {
+          _showSnackBar('แก้ไขข้อมูลเรียบร้อยแล้ว');
+          Navigator.pop(context, true);
+        } else {
+          _showSnackBar('แก้ไขข้อมูลล้มเหลว');
+        }
+      } catch (e) {
+        print('Error uploading profile data: $e');
+        _showSnackBar('เกิดข้อผิดพลาดในการอัปโหลด');
       }
     }
   }
@@ -326,7 +383,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
       padding: const EdgeInsets.fromLTRB(16.0, 48.0, 16.0, 24.0),
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('images/bg7.png'), // Image background
+          image: AssetImage('images/bg7.png'),
           fit: BoxFit.cover,
         ),
         borderRadius: BorderRadius.vertical(
@@ -336,7 +393,7 @@ class _EditDataProfileState extends State<EditDataProfile> {
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
             blurRadius: 10.0,
-            offset: Offset(0, 5), // Shadow below the header
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -351,12 +408,28 @@ class _EditDataProfileState extends State<EditDataProfile> {
                   Navigator.of(context).pop();
                 },
               ),
-              Spacer(), // This will push the text to the center
+              Spacer(),
             ],
           ),
-          CircleAvatar(
-            radius: 50.0,
-            backgroundImage: AssetImage('images/boy.png'), // Profile image
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 50.0,
+                backgroundImage: _getProfileImage(),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _pickImageFromFilePicker,
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.blueAccent,
+                    child: Icon(Icons.add, color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 16.0),
           Text(
@@ -378,6 +451,29 @@ class _EditDataProfileState extends State<EditDataProfile> {
         ],
       ),
     );
+  }
+
+  ImageProvider _getProfileImage() {
+    if (_profileImage != null) {
+      // ถ้าผู้ใช้เลือกภาพใหม่จากไฟล์ (มือถือหรือ desktop)
+      return FileImage(_profileImage!);
+    } else if (_webImage != null) {
+      // ถ้าผู้ใช้เลือกภาพใหม่จากไฟล์ (เว็บ)
+      return MemoryImage(_webImage!);
+    } else if (_profileData['image_url'] != null &&
+        _profileData['image_url'].isNotEmpty) {
+      // ถ้ามี image_url จากโปรไฟล์
+      String imageUrl = _profileData['image_url'];
+      // ใช้ proxyUrl ถ้ามีการตั้งค่า PROXY_URL
+      String? proxyUrl = dotenv.env['PROXY_URL'] != null &&
+              dotenv.env['PROXY_URL']!.isNotEmpty
+          ? '${dotenv.env['PROXY_URL']}?url=${Uri.encodeComponent(imageUrl)}'
+          : imageUrl;
+      return NetworkImage(proxyUrl);
+    } else {
+      // ถ้าไม่มีภาพใด ๆ ใช้ภาพเริ่มต้นจาก assets
+      return AssetImage('images/boy.png');
+    }
   }
 
   Widget _buildEditableTileWithIcon(

@@ -17,6 +17,7 @@ class ContentProfile extends StatefulWidget {
 
 class _ContentProfileState extends State<ContentProfile> {
   String username = "";
+  String? image_url;
   String email = "";
 
   @override
@@ -51,8 +52,12 @@ class _ContentProfileState extends State<ContentProfile> {
 
       if (responseData['status'] == 'success') {
         setState(() {
-          username = responseData['data']['username'];
-          this.email = responseData['data']['email'];
+          username = responseData['data']['username'] ??
+              'ไม่ระบุชื่อ'; // ถ้า username เป็น null, ใช้ค่าเริ่มต้น
+          image_url = responseData['data'][
+              'image_url']; // image_url อาจเป็น null, ให้จัดการใน _getProfileImage()
+          this.email = responseData['data']['email'] ??
+              'ไม่ระบุอีเมล'; // ถ้า email เป็น null, ใช้ค่าเริ่มต้น
         });
       } else {
         print('Error: ${responseData['message']}');
@@ -160,6 +165,21 @@ class _ContentProfileState extends State<ContentProfile> {
     );
   }
 
+  ImageProvider _getProfileImage() {
+    String? imageUrl = image_url; // image_url มาจาก API
+
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      // ใช้ proxyUrl ถ้ามีการตั้งค่า PROXY_URL
+      String? proxyUrl = dotenv.env['PROXY_URL'] != null &&
+              dotenv.env['PROXY_URL']!.isNotEmpty
+          ? '${dotenv.env['PROXY_URL']}?url=${Uri.encodeComponent(imageUrl)}'
+          : imageUrl;
+      return NetworkImage(proxyUrl);
+    } else {
+      return AssetImage('images/boy.png'); // ใช้ภาพเริ่มต้นจาก assets
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // ทำให้ Container ด้านบนครอบคลุม status bar ด้วยการซ่อน status bar
@@ -203,8 +223,7 @@ class _ContentProfileState extends State<ContentProfile> {
                           .top), // ขยับลงเพื่อหลีกเลี่ยงการทับกับ status bar
                   CircleAvatar(
                     radius: 50.0,
-                    backgroundImage:
-                        AssetImage('images/boy.png'), // Profile image
+                    backgroundImage: _getProfileImage(),
                   ),
                   SizedBox(height: 16.0),
                   Text(
@@ -290,7 +309,12 @@ class _ContentProfileState extends State<ContentProfile> {
                             email: email, // Pass email to edit screen
                           ),
                         ),
-                      );
+                      ).then((result) {
+                        if (result == true) {
+                          // รีเฟรชข้อมูลถ้าผลลัพธ์เป็น true
+                          _loadUserData(); // หรือฟังก์ชันใดที่ใช้ในการรีเฟรชข้อมูล
+                        }
+                      });
                     },
                     child: Container(
                       decoration: BoxDecoration(

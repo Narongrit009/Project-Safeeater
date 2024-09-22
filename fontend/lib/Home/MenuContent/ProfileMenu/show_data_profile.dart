@@ -91,7 +91,7 @@ class _ShowDataProfileState extends State<ShowDataProfile> {
                       SizedBox(height: 50),
                       CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('images/boy.png'),
+                        backgroundImage: _getProfileImage(),
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -141,6 +141,20 @@ class _ShowDataProfileState extends State<ShowDataProfile> {
         ],
       ),
     );
+  }
+
+  ImageProvider _getProfileImage() {
+    String? imageUrl = _profileData['image_url'];
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      // ใช้ proxyUrl ถ้ามีการตั้งค่า PROXY_URL
+      String? proxyUrl = dotenv.env['PROXY_URL'] != null &&
+              dotenv.env['PROXY_URL']!.isNotEmpty
+          ? '${dotenv.env['PROXY_URL']}?url=${Uri.encodeComponent(imageUrl)}'
+          : imageUrl;
+      return NetworkImage(proxyUrl);
+    } else {
+      return AssetImage('images/boy.png');
+    }
   }
 
   String _calculateAge(String? birthday) {

@@ -107,13 +107,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
   List<DateTime> getCurrentWeekDays() {
     DateTime today = DateTime.now();
-    int currentWeekday = today.weekday % 7; // 0 = Sunday, 6 = Saturday
-    DateTime sunday = today.subtract(Duration(days: currentWeekday));
-
     return List.generate(
       7,
-      (index) => sunday.add(Duration(days: index)),
-    ); // สร้าง List ของวันอาทิตย์ถึงวันเสาร์
+      (index) => today.subtract(Duration(days: index)),
+    ).reversed.toList(); // เรียงจากวันปัจจุบันย้อนหลังไป 7 วัน
   }
 
 // ฟังก์ชันเพื่อแปลง DateTime เป็น String สำหรับการแสดงผล
@@ -617,8 +614,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      interval:
-                          maxYValue / 5, // ปรับ interval ของแกน Y ให้เหมาะสม
+                      interval: (maxYValue / 5) > 0
+                          ? (maxYValue / 5)
+                          : 1, // ปรับ interval อย่างน้อยเป็น 1
                       getTitlesWidget: (value, meta) {
                         return Text(
                           value.toInt().toString(),
@@ -644,8 +642,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             axisSide: meta.axisSide,
                             space: 8.0,
                             child: Text(
-                              formatDayOfWeek(
-                                  getCurrentWeekDays()[value.toInt()]),
+                              formatDayOfWeek(getCurrentWeekDays()[
+                                  value.toInt()]), // ใช้ตัวย่อวัน
                               style: const TextStyle(
                                 color:
                                     Colors.black, // ปรับให้แกน X แสดงเป็นสีดำ
@@ -654,6 +652,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           );
                         }
+
                         // ถ้ากำลังแสดงผลแบบเดือน
                         else if (selectedFilter == 'month' &&
                             spots.any((spot) => spot.x == value)) {
@@ -718,7 +717,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 gridData: FlGridData(
                   show: true,
-                  horizontalInterval: maxYValue / 5, // เพิ่มเส้นตารางในแกน Y
+                  horizontalInterval: (maxYValue / 5) > 0
+                      ? (maxYValue / 5)
+                      : 1, // ปรับ interval อย่างน้อยเป็น 1
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
                       color: Colors.grey.withOpacity(0.2), // เส้นตารางสีจาง
@@ -727,6 +728,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
                   drawVerticalLine: false, // ไม่แสดงเส้นตั้ง
                 ),
+
                 borderData: FlBorderData(
                   show: true, // แสดงเส้นขอบ
                   border: Border(

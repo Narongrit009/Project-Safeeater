@@ -846,19 +846,40 @@ class _UserProfileStep3State extends State<UserProfileStep3> {
   }
 
   Future<void> _submitUserData() async {
-    String apiUrl = dotenv.get('API_URL_INSERT_USER_DATA');
+    // ตรวจสอบว่า API URL ได้ถูกตั้งค่าอย่างถูกต้อง
+    String apiUrl = dotenv.get('API_URL_INSERT_USER_DATA', fallback: '');
+
+    if (apiUrl.isEmpty) {
+      print('Error: API URL is not set');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('API URL ไม่ถูกต้อง')),
+      );
+      return;
+    }
 
     // จัดรูปแบบวันที่เป็น yyyy-mm-dd
     String? formattedDate = _selectedDate != null
         ? '${_selectedDate!.year.toString().padLeft(4, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}'
         : null;
 
+    // ตรวจสอบว่า email ถูกดึงมาจาก LocalStorage หรือไม่
+    if (_email == null || _email!.isEmpty) {
+      print('Error: Email is null or empty');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ไม่พบข้อมูลอีเมล กรุณาลองใหม่อีกครั้ง')),
+      );
+      return;
+    }
+
     // สร้างข้อมูลที่จะส่งไปยัง API
     Map<String, dynamic> userData = {
       'email': _email, // แทนที่ _email ด้วยค่าที่ได้จาก LocalStorage
       'username': widget.username,
-      'food_allergies': widget.foodAllergies,
-      'chronic_diseases': widget.chronicDiseases,
+      'food_allergies':
+          widget.foodAllergies.isNotEmpty ? widget.foodAllergies : ['ไม่มี'],
+      'chronic_diseases': widget.chronicDiseases.isNotEmpty
+          ? widget.chronicDiseases
+          : ['ไม่มี'],
       'height': _heightController.text,
       'weight': _weightController.text,
       'birth_date': formattedDate,
@@ -882,63 +903,86 @@ class _UserProfileStep3State extends State<UserProfileStep3> {
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
+      // ตรวจสอบสถานะการตอบกลับจาก API
       if (response.statusCode == 200) {
-        showDialog(
-          context: context,
-          barrierDismissible: false, // Prevent closing by tapping outside
-          builder: (BuildContext context) {
-            return AlertDialog(
-              backgroundColor: Colors.white, // White background for clarity
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Success animation using Lottie
-                  Lottie.asset(
-                    'animations/correct.json',
-                    width: 150,
-                    height: 150,
-                    repeat: false,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'บันทึกข้อมูลเรียบร้อย!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green, // Text color for success
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+        final Map<String, dynamic> responseData = json.decode(response.body);
 
-        await Future.delayed(Duration(seconds: 3));
-        // ตัวอย่างการบันทึก email ลงใน SharedPreferences หลังจาก login
+        // ตรวจสอบว่าการบันทึกสำเร็จ
+        if (responseData['status'] == 'success') {
+          // แสดง dialog สำเร็จ
+          showDialog(
+            context: context,
+            barrierDismissible:
+                false, // ป้องกันการปิด dialog โดยการแตะที่ด้านนอก
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.white, // พื้นหลังสีขาว
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // แสดง animation ที่แสดงถึงความสำเร็จ
+                    Lottie.asset(
+                      'animations/correct.json',
+                      width: 150,
+                      height: 150,
+                      repeat: false,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'บันทึกข้อมูลเรียบร้อย!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // ข้อความแสดงความสำเร็จสีเขียว
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
 
-        // Navigate to homepage automatically
-        Navigator.pushReplacementNamed(context, '/homepage');
+          // รอให้แสดงผล dialog 3 วินาทีก่อนปิด
+          await Future.delayed(Duration(seconds: 3));
+
+          // นำทางไปยังหน้า homepage
+          Navigator.pushReplacementNamed(context, '/homepage');
+        } else {
+          // ถ้าการตอบกลับไม่สำเร็จ
+          print('Error: ${responseData['message']}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('เกิดข้อผิดพลาด: ${responseData['message']}')),
+          );
+        }
       } else {
+        // กรณี HTTP status code ไม่ใช่ 200
+        print('Failed to save data: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์')),
+          SnackBar(
+              content: Text(
+                  'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์: ${response.statusCode}')),
         );
       }
     } catch (error) {
+      // จัดการกรณีเกิดข้อผิดพลาดอื่นๆ
       print('Error occurred: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('เกิดข้อผิดพลาด: $error')),
+      );
     }
   }
 }
