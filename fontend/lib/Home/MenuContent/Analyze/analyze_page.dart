@@ -255,26 +255,36 @@ class _AnalyzePageState extends State<AnalyzePage> {
         // แยกผลการวิเคราะห์
         _parseAnalysisResult(analysisResult);
 
-        // ปิด pop-up และไปยังหน้า AnalyzeDetailsPage
+        // ปิด pop-up หลังการวิเคราะห์
         Navigator.pop(context);
+
+        // ตรวจสอบว่ามีชื่อเมนูและวัตถุดิบที่ถูกต้องหรือไม่
+        if (_dishName == 'ไม่สามารถวิเคราะห์ชื่อเมนูได้' ||
+            _ingredients.contains('ไม่พบวัตถุดิบ')) {
+          // ถ้าไม่มีข้อมูลที่จำเป็น แสดง Snackbar และไม่ไปหน้าถัดไป
+          _showSnackBar(
+              context, 'ไม่พบชื่อเมนูหรือวัตถุดิบในจาน กรุณาลองอีกครั้ง');
+          return; // หยุดการนำทางไปหน้าถัดไป
+        }
+
+        // ถ้ามีข้อมูลที่จำเป็น นำทางไปยัง AnalyzeDetailsPage
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => AnalyzeDetailsPage(
               dishName: _dishName!, // ส่งชื่อเมนู
               ingredients: _ingredients, // ส่งรายการวัตถุดิบ
-              diseaseRisks: _diseaseRisks, // ส่งรายการวัตถุดิบ
+              diseaseRisks: _diseaseRisks, // ส่งรายการโรคที่เสี่ยง
               webImage: _webImage, // ส่งรูปภาพ
               imageFile: _image, // ส่งรูปภาพ
             ),
           ),
         );
+
         // พิมพ์ค่าตัวแปรเพื่อดูผลลัพธ์
         print('Dish Name: $_dishName');
         print('Ingredients: $_ingredients');
         print('Disease Risks: $_diseaseRisks');
-        // print('Web Image: $_webImage');
-        // print('Image File: $_image');
       }
     } catch (e) {
       print('Error analyzing image: $e');
