@@ -11,7 +11,7 @@
  Target Server Version : 100428 (10.4.28-MariaDB)
  File Encoding         : 65001
 
- Date: 20/09/2024 04:05:02
+ Date: 23/09/2024 18:56:40
 */
 
 SET NAMES utf8mb4;
@@ -457,7 +457,7 @@ INSERT INTO `nutritional_information` VALUES (1613, 'มะนาว', 30, 100, 
 INSERT INTO `nutritional_information` VALUES (1614, 'ผักชี', 25, 100, 2.5, 0, 2.5, 0.1, 7, 0, 9, 0, 0, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B8%8A%E0%B8%B5.png', '2024-09-10 12:03:35');
 INSERT INTO `nutritional_information` VALUES (1615, 'อะโวคาโด', 160, 100, 2, 14.7, 8.5, 0, 0, 0, 0, 0, 0.7, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%AD%E0%B8%B0%E0%B9%82%E0%B8%A7%E0%B8%84%E0%B8%B2%E0%B9%82%E0%B8%94.png', '2024-09-10 12:06:02');
 INSERT INTO `nutritional_information` VALUES (1616, 'ผักโขม', 23, 100, 2.9, 0.4, 3.6, 2.2, 0.1, 0.15, 0.47, 0, 0.4, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B9%82%E0%B8%82%E0%B8%A1.png', '2024-09-10 12:09:19');
-INSERT INTO `nutritional_information` VALUES (1617, 'สตรอเบอรี่', 32, 100, 0.7, 0.3, 8, 0, 0, 0, 15, 0, 4.9, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%AA%E0%B8%95%E0%B8%AD%E0%B9%80%E0%B8%9A%E0%B8%AD%E0%B8%A3%E0%B8%B5%E0%B9%88.png', '2024-09-10 12:11:40');
+INSERT INTO `nutritional_information` VALUES (1617, 'สตรอว์เบอร์รี่', 32, 100, 0.7, 0.3, 8, 0, 0, 0, 15, 0, 4.9, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%AA%E0%B8%95%E0%B8%AD%E0%B9%80%E0%B8%9A%E0%B8%AD%E0%B8%A3%E0%B8%B5%E0%B9%88.png', '2024-09-10 12:11:40');
 INSERT INTO `nutritional_information` VALUES (1618, 'แอปเปิ้ลเขียว', 30, 100, 0, 0, 8, 0.1, 0, 0, 0, 0, 0, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B9%81%E0%B8%AD%E0%B8%9B%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B9%89%E0%B8%A5%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7.png', '2024-09-10 12:13:12');
 INSERT INTO `nutritional_information` VALUES (1619, 'ผัดสลัด', 56, 100, 3, 0, 11, 2.1, 0, 0, 3.7, 0, 0, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B8%A5%E0%B8%B1%E0%B8%94.png', '2024-09-10 12:15:22');
 INSERT INTO `nutritional_information` VALUES (1620, 'อัลมอนด์', 575, 100, 21, 49, 22, 12, 264, 3.7, 0, 0, 0.3, 0, 'https://student.crru.ac.th/641463014/Safeeater/image-food_ingredients/%E0%B8%AD%E0%B8%B1%E0%B8%A5%E0%B8%A1%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C.png', '2024-09-10 12:19:17');

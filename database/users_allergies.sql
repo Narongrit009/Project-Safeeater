@@ -11,7 +11,7 @@
  Target Server Version : 100428 (10.4.28-MariaDB)
  File Encoding         : 65001
 
- Date: 20/09/2024 04:05:17
+ Date: 23/09/2024 18:56:23
 */
 
 SET NAMES utf8mb4;
@@ -41,5 +41,7 @@ INSERT INTO `users_allergies` VALUES (40, 1000);
 INSERT INTO `users_allergies` VALUES (41, 1000);
 INSERT INTO `users_allergies` VALUES (42, 1000);
 INSERT INTO `users_allergies` VALUES (35, 1449);
+INSERT INTO `users_allergies` VALUES (39, 1000);
+INSERT INTO `users_allergies` VALUES (43, 1000);
 
 SET FOREIGN_KEY_CHECKS = 1;

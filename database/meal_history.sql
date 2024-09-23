@@ -11,7 +11,7 @@
  Target Server Version : 100428 (10.4.28-MariaDB)
  File Encoding         : 65001
 
- Date: 20/09/2024 04:04:38
+ Date: 23/09/2024 18:57:05
 */
 
 SET NAMES utf8mb4;
@@ -32,7 +32,7 @@ CREATE TABLE `meal_history`  (
   INDEX `menu_id`(`menu_id` ASC) USING BTREE,
   CONSTRAINT `meal_history_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `meal_history_ibfk_2` FOREIGN KEY (`menu_id`) REFERENCES `food_menu` (`menu_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 900062 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 900067 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of meal_history
@@ -50,5 +50,8 @@ INSERT INTO `meal_history` VALUES (900057, 35, 100015, 'true', '2024-09-18 02:08
 INSERT INTO `meal_history` VALUES (900059, 35, 100012, 'true', '2024-09-19 13:08:19');
 INSERT INTO `meal_history` VALUES (900060, 35, 100004, 'false', '2024-09-20 03:29:36');
 INSERT INTO `meal_history` VALUES (900061, 35, 100013, 'true', '2024-09-20 03:38:07');
+INSERT INTO `meal_history` VALUES (900062, 35, 100018, 'true', '2024-09-22 22:00:01');
+INSERT INTO `meal_history` VALUES (900065, 43, 100020, 'true', '2024-09-23 00:45:16');
+INSERT INTO `meal_history` VALUES (900066, 43, 100012, 'true', '2024-09-23 00:45:49');
 
 SET FOREIGN_KEY_CHECKS = 1;
