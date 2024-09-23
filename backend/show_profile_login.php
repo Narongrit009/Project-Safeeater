@@ -23,6 +23,7 @@ if (isset($data['email']) && !empty($data['email'])) {
         u.birthday,
         u.height,
         u.weight,
+        u.image_url,
         IFNULL(GROUP_CONCAT(DISTINCT hc.condition_name ORDER BY hc.condition_name ASC SEPARATOR ', '), 'ไม่มี') AS chronic_diseases,
         IFNULL(GROUP_CONCAT(DISTINCT ni.ingredient_name ORDER BY ni.ingredient_name ASC SEPARATOR ', '), 'ไม่มี') AS food_allergies
     FROM
@@ -47,6 +48,17 @@ if (isset($data['email']) && !empty($data['email'])) {
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
+
+        // สร้าง URL สำหรับรูปภาพโปรไฟล์
+        if (!empty($row['image_url'])) {
+            $image_url = "http://" . $_SERVER['HTTP_HOST'] . "/safeeater/profile/photos/" . $row['image_url'];
+        } else {
+            $image_url = null; // หรือใส่ URL ของรูปภาพเริ่มต้น
+        }
+
+        // รวม image_url ในข้อมูลที่ส่งกลับ
+        $row['image_url'] = $image_url;
+
         echo json_encode(["status" => "success", "data" => $row]);
     } else {
         echo json_encode(["status" => "error", "message" => "User not found"]);
