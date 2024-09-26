@@ -69,9 +69,7 @@ const DashboardPage = () => {
 
         <div className="p-8 space-y-8">
           <header className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Hi, Welcome back 👋
-            </h1>
+            <h1 className="text-4xl font-bold text-gray-900">Hi, Welcome 👋</h1>
           </header>
 
           {/* Cards */}

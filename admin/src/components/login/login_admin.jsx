@@ -4,11 +4,14 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
 import logo from "../../../public/image/logo3.png"; // นำเข้ารูปโลโก้
 import bgfood from "../../../public/image/bgfood.jpeg"; // นำเข้ารูปโลโก้
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // นำเข้า FontAwesomeIcon
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"; // นำเข้าไอคอนตา
 
 const LoginAdmin = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // สถานะแสดง/ซ่อนรหัสผ่าน
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -56,6 +59,10 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword); // เปลี่ยนสถานะแสดง/ซ่อนรหัสผ่าน
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -96,14 +103,26 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
             >
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12" // เพิ่ม padding ด้านขวาเพื่อเว้นที่สำหรับไอคอน
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {/* ปุ่มแสดง/ซ่อนรหัสผ่าน */}
+              <span
+                onClick={togglePasswordVisibility}
+                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+              >
+                <FontAwesomeIcon
+                  icon={showPassword ? faEyeSlash : faEye}
+                  className="text-gray-500"
+                />
+              </span>
+            </div>
           </div>
 
           <button

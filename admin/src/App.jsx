@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import LoginAdmin from "./components/login/login_admin.jsx";
 import DashboardPage from "./components/dashboard/dashboard_page.jsx";
+import Users from "./components/dashboard/user/users.jsx"; // นำเข้า Users component
+import FoodMenuByCategory from "./components/dashboard/table/foodmenu/food_menu.jsx"; // นำเข้า Users component
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,6 +37,16 @@ function App() {
         <Route
           path="/dashboard"
           element={isAuthenticated ? <DashboardPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/users"
+          element={isAuthenticated ? <Users /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/foodmenu"
+          element={
+            isAuthenticated ? <FoodMenuByCategory /> : <Navigate to="/" />
+          }
         />
       </Routes>
     </Router>
