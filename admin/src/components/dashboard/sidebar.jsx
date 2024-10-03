@@ -14,7 +14,7 @@ import {
 
 const Sidebar = ({ isSidebarOpen }) => {
   const navigate = useNavigate();
-  const location = useLocation(); // Use this to determine the current route
+  const location = useLocation();
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -57,7 +57,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                 className="w-10 h-10 rounded-full shadow-md hover:shadow-lg transition-shadow duration-300"
               />
               <div className="text-2xl font-light text-white tracking-wider hover:tracking-wide transition-all duration-300">
-                Admin SafeEater
+                ผู้ดูแลระบบ SafeEater
               </div>
             </div>
           )}
@@ -77,7 +77,7 @@ const Sidebar = ({ isSidebarOpen }) => {
               >
                 <FontAwesomeIcon icon={faChartPie} />
                 <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-                  Dashboard
+                  แดชบอร์ด
                 </span>
               </Link>
             </li>
@@ -92,7 +92,7 @@ const Sidebar = ({ isSidebarOpen }) => {
               >
                 <FontAwesomeIcon icon={faUser} />
                 <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-                  User
+                  ผู้ใช้
                 </span>
               </Link>
             </li>
@@ -113,7 +113,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                 <div className="flex items-center space-x-4">
                   <FontAwesomeIcon icon={faTable} />
                   <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-                    Table
+                    ตาราง
                   </span>
                 </div>
                 {isSidebarOpen && (
@@ -143,7 +143,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                         }`}
                       >
                         <span>🍽️</span>
-                        <span>Food Menu</span>
+                        <span>เมนูอาหาร</span>
                       </Link>
                     </li>
                     <li className="mb-2">
@@ -156,7 +156,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                         }`}
                       >
                         <span>📂</span>
-                        <span>Food Categories</span>
+                        <span>หมวดหมู่อาหาร</span>
                       </Link>
                     </li>
                     <li className="mb-2">
@@ -169,7 +169,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                         }`}
                       >
                         <span>🌿</span>
-                        <span>Ingredient</span>
+                        <span>วัตถุดิบ</span>
                       </Link>
                     </li>
                     <li className="mb-2">
@@ -182,7 +182,7 @@ const Sidebar = ({ isSidebarOpen }) => {
                         }`}
                       >
                         <span>🩺</span>
-                        <span>Disease</span>
+                        <span>โรค</span>
                       </Link>
                     </li>
                   </ul>
@@ -200,7 +200,7 @@ const Sidebar = ({ isSidebarOpen }) => {
               >
                 <FontAwesomeIcon icon={faCog} />
                 <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-                  Settings
+                  การตั้งค่า
                 </span>
               </Link>
             </li>
@@ -211,7 +211,7 @@ const Sidebar = ({ isSidebarOpen }) => {
               >
                 <FontAwesomeIcon icon={faSignOutAlt} />
                 <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-                  Logout
+                  ออกจากระบบ
                 </span>
               </button>
             </li>
@@ -225,7 +225,7 @@ const Sidebar = ({ isSidebarOpen }) => {
           isSidebarOpen ? "block" : "hidden"
         }`}
       >
-        <p className="text-sm">© 2024 Dashboard SafeEater v0.1</p>
+        <p className="text-sm">© 2024 Dashboard SafeEater</p>
       </div>
     </div>
   );

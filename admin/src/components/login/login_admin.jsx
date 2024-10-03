@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2"; // นำเข้า SweetAlert2
-import logo from "../../../public/image/logo3.png"; // นำเข้ารูปโลโก้
-import bgfood from "../../../public/image/bgfood.jpeg"; // นำเข้ารูปโลโก้
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // นำเข้า FontAwesomeIcon
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"; // นำเข้าไอคอนตา
+import Swal from "sweetalert2";
+import logo from "../../../public/image/logo3.png";
+import bgfood from "../../../public/image/bgfood.jpeg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const LoginAdmin = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // สถานะแสดง/ซ่อนรหัสผ่าน
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -31,7 +30,7 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
 
         Swal.fire({
           title: "เข้าสู่ระบบสำเร็จ!",
-          text: "คุณกำลังถูกนำไปยังหน้า Dashboard",
+          text: "คุณกำลังถูกนำไปยังหน้าแดชบอร์ด",
           icon: "success",
           confirmButtonText: "ตกลง",
           timer: 1500,
@@ -60,7 +59,7 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword); // เปลี่ยนสถานะแสดง/ซ่อนรหัสผ่าน
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -75,7 +74,7 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
         </div>
 
         <h2 className="text-4xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
-          Admin Login
+          เข้าสู่ระบบผู้ดูแล
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -84,7 +83,7 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
               className="block text-gray-700 font-semibold mb-2"
               htmlFor="email"
             >
-              Email Address
+              อีเมล
             </label>
             <input
               type="email"
@@ -101,13 +100,13 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
               className="block text-gray-700 font-semibold mb-2"
               htmlFor="password"
             >
-              Password
+              รหัสผ่าน
             </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12" // เพิ่ม padding ด้านขวาเพื่อเว้นที่สำหรับไอคอน
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -129,7 +128,7 @@ const LoginAdmin = ({ setIsAuthenticated }) => {
             type="submit"
             className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 transform hover:scale-105"
           >
-            Login
+            เข้าสู่ระบบ
           </button>
         </form>
       </div>

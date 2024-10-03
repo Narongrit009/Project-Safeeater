@@ -7,18 +7,18 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // สถานะเปิด/ปิด Sidebar
-  const [searchTerm, setSearchTerm] = useState(""); // เก็บคำค้นหา
-  const [currentPage, setCurrentPage] = useState(1); // สถานะหน้าใน pagination
-  const itemsPerPage = 6; // จำนวนข้อมูลต่อหน้า
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const [showOptions, setShowOptions] = useState(false);
 
-  // ฟังก์ชันสลับสถานะ Sidebar
+  // Toggle sidebar
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Fetch ข้อมูลผู้ใช้งานจาก API
+  // Fetch user data from API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -36,7 +36,7 @@ const Users = () => {
     fetchUsers();
   }, []);
 
-  // ฟิลเตอร์ข้อมูลที่ค้นหา
+  // Filter search results
   const filteredUsers = users.filter((user) => {
     return (
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,15 +45,15 @@ const Users = () => {
   });
 
   const toggleOptions = () => {
-    setShowOptions(!showOptions); // สลับการแสดงผลเมนูเมื่อกดปุ่ม
+    setShowOptions(!showOptions);
   };
 
-  // คำนวณข้อมูลที่จะแสดงในหน้าปัจจุบัน
+  // Pagination calculations
   const indexOfLastUser = currentPage * itemsPerPage;
   const indexOfFirstUser = indexOfLastUser - itemsPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  // คำนวณจำนวนหน้าทั้งหมด
+  // Total pages calculation
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
@@ -63,7 +63,7 @@ const Users = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        Loading...
+        กำลังโหลด...
       </div>
     );
   }
@@ -71,7 +71,7 @@ const Users = () => {
   if (error) {
     return (
       <div className="text-center text-red-500">
-        Error loading users: {error.message}
+        เกิดข้อผิดพลาดในการโหลดข้อมูลผู้ใช้: {error.message}
       </div>
     );
   }
@@ -87,7 +87,7 @@ const Users = () => {
         <Navbar toggleSidebar={toggleSidebar} />
         {/* User Information */}
         <h1 className="text-4xl font-bold text-center mt-10 mb-5 text-gray-800">
-          User Information
+          ข้อมูลผู้ใช้
         </h1>
 
         {/* Search Box */}
@@ -112,7 +112,7 @@ const Users = () => {
             </span>
             <input
               type="text"
-              placeholder="Search by username or email"
+              placeholder="ค้นหาด้วยชื่อผู้ใช้หรืออีเมล"
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 w-full shadow-lg transition-transform duration-300 ease-in-out hover:scale-105"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -126,26 +126,6 @@ const Users = () => {
               key={user.user_id}
               className="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
             >
-              {/* Icon จุดสามจุด */}
-              <div className="absolute top-3 right-3">
-                <button className="text-gray-500 hover:text-gray-700">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v.01M12 12v.01M12 18v.01"
-                    />
-                  </svg>
-                </button>
-              </div>
-
               {/* Image Section */}
               <div className="flex justify-center mb-4">
                 {user.image_url ? (
@@ -156,7 +136,7 @@ const Users = () => {
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center shadow-md">
-                    <span className="text-gray-700">No Image</span>
+                    <span className="text-gray-700">ไม่มีรูปภาพ</span>
                   </div>
                 )}
               </div>
@@ -180,11 +160,12 @@ const Users = () => {
                   >
                     <path
                       fillRule="evenodd"
-                      d="M2.003 5.884l8-3.2a1 1 0 01.994 0l8 3.2a1 1 0 01.575.922v6.4a1 1 0 01-.575.922l-8 3.2a1 1 0 01-.994 0l-8-3.2A1 1 0 012 13.206v-6.4a1 1 0 01.003-.922z"
+                      d="M10 2a5 5 0 100 10A5 5 0 1010 2z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Tel:</span> {user.tel || "N/A"}
+                  <span className="font-medium">เบอร์โทร:</span>{" "}
+                  {user.tel || "N/A"}
                 </div>
                 <div className="flex items-center">
                   <svg
@@ -199,7 +180,7 @@ const Users = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Gender:</span>{" "}
+                  <span className="font-medium">เพศ:</span>{" "}
                   {user.gender || "N/A"}
                 </div>
                 <div className="flex items-center">
@@ -211,11 +192,11 @@ const Users = () => {
                   >
                     <path
                       fillRule="evenodd"
-                      d="M6 3a3 3 0 106 0 3 3 0 00-6 0zm-2 9a5 5 0 0110 0v4H4v-4z"
+                      d="M10 2a5 5 0 100 10A5 5 0 1010 2z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Birthday:</span>{" "}
+                  <span className="font-medium">วันเกิด:</span>{" "}
                   {user.birthday || "N/A"}
                 </div>
                 <div className="flex items-center">
@@ -231,8 +212,8 @@ const Users = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Height:</span>{" "}
-                  {user.height ? `${user.height} cm` : "N/A"}
+                  <span className="font-medium">ส่วนสูง:</span>{" "}
+                  {user.height ? `${user.height} ซม.` : "N/A"}
                 </div>
                 <div className="flex items-center">
                   <svg
@@ -247,8 +228,8 @@ const Users = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Weight:</span>{" "}
-                  {user.weight ? `${user.weight} kg` : "N/A"}
+                  <span className="font-medium">น้ำหนัก:</span>{" "}
+                  {user.weight ? `${user.weight} กก.` : "N/A"}
                 </div>
                 <div className="flex items-center">
                   <svg
@@ -259,11 +240,11 @@ const Users = () => {
                   >
                     <path
                       fillRule="evenodd"
-                      d="M2.003 5.884l8-3.2a1 1 0 01.994 0l8 3.2a1 1 0 01.575.922v6.4a1 1 0 01-.575.922l-8 3.2a1 1 0 01-.994 0l-8-3.2A1 1 0 012 13.206v-6.4a1 1 0 01.003-.922z"
+                      d="M10 2a5 5 0 100 10A5 5 0 1010 2z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Chronic Diseases:</span>{" "}
+                  <span className="font-medium">โรคประจำตัว:</span>{" "}
                   {user.chronic_diseases || "N/A"}
                 </div>
                 <div className="flex items-center">
@@ -279,7 +260,7 @@ const Users = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-medium">Food Allergies:</span>{" "}
+                  <span className="font-medium">อาหารที่แพ้:</span>{" "}
                   {user.food_allergies || "N/A"}
                 </div>
               </div>

@@ -3,15 +3,15 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 const FoodCategoriesEdit = ({ category, onEdit }) => {
-  // Handle the form submission to update the category
+  // ฟังก์ชันจัดการการแก้ไขหมวดหมู่
   const handleEditCategory = async (id, name, description) => {
     if (!name) {
-      Swal.fire("Error", "Please provide a category name", "error");
+      Swal.fire("ข้อผิดพลาด", "กรุณาระบุชื่อหมวดหมู่", "error");
       return;
     }
 
     try {
-      // Call API to update the category
+      // เรียกใช้ API เพื่อแก้ไขหมวดหมู่
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL_GET_FOOD_CATEGORIES}`,
         {
@@ -27,50 +27,46 @@ const FoodCategoriesEdit = ({ category, onEdit }) => {
       );
 
       if (response.data.status === "success") {
-        Swal.fire("Success", "Category updated successfully", "success").then(
+        Swal.fire("สำเร็จ", "แก้ไขหมวดหมู่เรียบร้อยแล้ว", "success").then(
           () => {
-            // Refresh the list in the parent component
+            // รีเฟรชรายการในคอมโพเนนต์หลัก
             onEdit();
           }
         );
       } else {
         Swal.fire(
-          "Error",
-          response.data.message || "Failed to update category",
+          "ข้อผิดพลาด",
+          response.data.message || "ไม่สามารถแก้ไขหมวดหมู่ได้",
           "error"
         );
       }
     } catch (error) {
-      Swal.fire(
-        "Error",
-        "An error occurred while updating the category",
-        "error"
-      );
+      Swal.fire("ข้อผิดพลาด", "เกิดข้อผิดพลาดขณะทำการแก้ไขหมวดหมู่", "error");
     }
   };
 
-  // Display the edit form in a popup using SweetAlert2
+  // แสดงแบบฟอร์มแก้ไขในป๊อปอัพด้วย SweetAlert2
   const showEditCategoryPopup = () => {
     Swal.fire({
-      title: "<h2 class='text-lg font-semibold'>Edit Category</h2>",
+      title: "<h2 class='text-lg font-semibold'>แก้ไขหมวดหมู่</h2>",
       html: `
         <div class="flex flex-col gap-4">
-          <input id="category-name" class="swal2-input px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Category Name" value="${category.category_name}" />
-          <textarea id="category-description" class="swal2-textarea px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Category Description">${category.description}</textarea>
+          <input id="category-name" class="swal2-input px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="ชื่อหมวดหมู่" value="${category.category_name}" />
+          <textarea id="category-description" class="swal2-textarea px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="รายละเอียดหมวดหมู่">${category.description}</textarea>
         </div>
       `,
       showCancelButton: true,
       confirmButtonColor: "#4CAF50",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Update",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "บันทึก",
+      cancelButtonText: "ยกเลิก",
       preConfirm: () => {
         const name = Swal.getPopup().querySelector("#category-name").value;
         const description = Swal.getPopup().querySelector(
           "#category-description"
         ).value;
         if (!name) {
-          Swal.showValidationMessage("Please enter the category name");
+          Swal.showValidationMessage("กรุณาระบุชื่อหมวดหมู่");
         }
         return { name, description };
       },
@@ -90,7 +86,7 @@ const FoodCategoriesEdit = ({ category, onEdit }) => {
       onClick={showEditCategoryPopup}
       className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-full shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105"
     >
-      Edit
+      แก้ไข
     </button>
   );
 };

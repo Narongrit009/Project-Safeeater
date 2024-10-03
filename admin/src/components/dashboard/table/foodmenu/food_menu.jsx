@@ -10,7 +10,7 @@ const FoodMenuByCategory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 8;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar toggle state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // สถานะเปิด/ปิด Sidebar
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -35,17 +35,17 @@ const FoodMenuByCategory = () => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1); // รีเซ็ตไปยังหน้าแรกเมื่อมีการค้นหาใหม่
   };
 
-  // Filter items based on search term
+  // กรองรายการอาหารตามคำค้นหา
   const filteredItems = foodItems.filter(
     (item) =>
       item.menu_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.category_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
+  // การแบ่งหน้า
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -55,8 +55,8 @@ const FoodMenuByCategory = () => {
     setCurrentPage(page);
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (loading) return <div>กำลังโหลด...</div>;
+  if (error) return <div>เกิดข้อผิดพลาด: {error.message}</div>;
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200">
@@ -67,21 +67,21 @@ const FoodMenuByCategory = () => {
         {/* Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
         <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-800">
-          Food Menu
+          เมนูอาหาร
         </h1>
 
-        {/* Search Box */}
+        {/* กล่องค้นหา */}
         <div className="flex justify-center mb-8">
           <input
             type="text"
-            placeholder="Search by name or category"
+            placeholder="ค้นหาด้วยชื่อหรือประเภท"
             className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"
             value={searchTerm}
             onChange={handleSearch}
           />
         </div>
 
-        {/* Food Items */}
+        {/* รายการอาหาร */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {currentItems.map((item) => (
             <div
@@ -98,10 +98,10 @@ const FoodMenuByCategory = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md">
-                    <span className="text-gray-700">No Image</span>
+                    <span className="text-gray-700">ไม่มีรูป</span>
                   </div>
                 )}
-                {/* Optional Badge */}
+                {/* Badge แสดงประเภท */}
                 <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-lg text-xs font-semibold shadow-md">
                   {item.category_name}
                 </div>
@@ -114,13 +114,13 @@ const FoodMenuByCategory = () => {
                 </h2>
 
                 <p className="text-xs text-gray-400">
-                  <strong>Created at:</strong>{" "}
+                  <strong>สร้างเมื่อ:</strong>{" "}
                   {new Date(item.created_at).toLocaleDateString()}
                 </p>
 
-                {/* View Details Button */}
+                {/* ปุ่มดูรายละเอียด */}
                 <button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full hover:from-blue-600 hover:to-purple-600 transition duration-300 transform hover:scale-105 shadow-lg">
-                  View Details
+                  ดูรายละเอียด
                 </button>
               </div>
             </div>

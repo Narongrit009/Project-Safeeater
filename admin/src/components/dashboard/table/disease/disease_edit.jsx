@@ -6,7 +6,7 @@ const DiseaseEdit = ({ disease, onEdit }) => {
   // Handle the form submission for editing the disease
   const handleEditDisease = async (updatedDisease) => {
     if (!updatedDisease.name) {
-      Swal.fire("Error", "Please provide a disease name", "error");
+      Swal.fire("ข้อผิดพลาด", "กรุณากรอกชื่อโรค", "error");
       return;
     }
 
@@ -27,46 +27,40 @@ const DiseaseEdit = ({ disease, onEdit }) => {
       );
 
       if (response.data.status === "success") {
-        Swal.fire("Success", "Disease updated successfully", "success").then(
-          () => {
-            // Refresh the list
-            onEdit();
-          }
-        );
+        Swal.fire("สำเร็จ", "แก้ไขโรคเรียบร้อยแล้ว", "success").then(() => {
+          // Refresh the list
+          onEdit();
+        });
       } else {
-        Swal.fire("Error", "Failed to update disease", "error");
+        Swal.fire("ข้อผิดพลาด", "ไม่สามารถแก้ไขโรคได้", "error");
       }
     } catch (error) {
-      Swal.fire(
-        "Error",
-        "An error occurred while updating the disease",
-        "error"
-      );
+      Swal.fire("ข้อผิดพลาด", "เกิดข้อผิดพลาดขณะทำการแก้ไขโรค", "error");
     }
   };
 
   // Display the form in a popup using SweetAlert2
   const showEditDiseasePopup = () => {
     Swal.fire({
-      title: "<h2 class='text-lg font-semibold'>Edit Disease</h2>",
+      title: "<h2 class='text-lg font-semibold'>แก้ไขโรค</h2>",
       html: `
         <div class="flex flex-col gap-4">
-          <input id="disease-name" class="swal2-input px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Disease Name" value="${disease.condition_name}" />
-          <textarea id="disease-description" class="swal2-textarea px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Disease Description">${disease.condition_description}</textarea>
+          <input id="disease-name" class="swal2-input px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="ชื่อโรค" value="${disease.condition_name}" />
+          <textarea id="disease-description" class="swal2-textarea px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="รายละเอียดโรค">${disease.condition_description}</textarea>
         </div>
       `,
       showCancelButton: true,
       confirmButtonColor: "#4CAF50",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Save",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "บันทึก",
+      cancelButtonText: "ยกเลิก",
       preConfirm: () => {
         const name = Swal.getPopup().querySelector("#disease-name").value;
         const description = Swal.getPopup().querySelector(
           "#disease-description"
         ).value;
         if (!name) {
-          Swal.showValidationMessage("Please enter the disease name");
+          Swal.showValidationMessage("กรุณากรอกชื่อโรค");
         }
         return { name: name, description: description };
       },
@@ -82,7 +76,7 @@ const DiseaseEdit = ({ disease, onEdit }) => {
       onClick={showEditDiseasePopup}
       className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-full shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105"
     >
-      Edit
+      แก้ไข
     </button>
   );
 };

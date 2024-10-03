@@ -50,35 +50,35 @@ const Disease = () => {
   // ฟังก์ชันสำหรับลบโรค
   const handleDelete = (id) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You will not be able to recover this data!",
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "ใช่, ลบเลย!",
+      cancelButtonText: "ยกเลิก",
     }).then((result) => {
       if (result.isConfirmed) {
-        // Delete data from the database (make DELETE API call)
+        // ลบข้อมูลจากฐานข้อมูล (เรียกใช้ DELETE API)
         axios
-          .delete(`${import.meta.env.VITE_API_URL_GET_DISEASES}?id=${id}`) // Add the ID as a query parameter
+          .delete(`${import.meta.env.VITE_API_URL_GET_DISEASES}?id=${id}`) // เพิ่ม ID เป็น query parameter
           .then(() => {
-            // Update the local state
+            // อัปเดตข้อมูลใน state
             setDiseases(
               diseases.filter((disease) => disease.condition_id !== id)
             );
-            Swal.fire("Deleted!", "Your data has been deleted.", "success");
+            Swal.fire("ลบแล้ว!", "ข้อมูลของคุณถูกลบเรียบร้อยแล้ว", "success");
           })
           .catch((error) => {
-            Swal.fire("Error!", "Failed to delete the data.", "error");
+            Swal.fire("ข้อผิดพลาด!", "ไม่สามารถลบข้อมูลได้", "error");
           });
       }
     });
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (loading) return <div>กำลังโหลด...</div>;
+  if (error) return <div>ข้อผิดพลาด: {error.message}</div>;
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-100 to-gray-200">
@@ -90,20 +90,19 @@ const Disease = () => {
         {/* Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
         <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
-          Disease List
+          รายการโรค
         </h1>
 
         {/* Search Box and Add Button */}
         <div className="flex justify-between mb-6">
           <input
             type="text"
-            placeholder="Search for diseases"
+            placeholder="ค้นหาโรค"
             className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
             value={searchTerm}
             onChange={handleSearch}
           />
-          <DiseaseAdd onAdd={fetchDiseases} />{" "}
-          {/* Use DiseaseAdd component here */}
+          <DiseaseAdd onAdd={fetchDiseases} /> {/* ใช้คอมโพเนนต์ DiseaseAdd */}
         </div>
 
         {/* Disease Table */}
@@ -112,9 +111,9 @@ const Disease = () => {
             <thead>
               <tr className="bg-blue-500 text-white">
                 <th className="py-3 px-4 text-left">#</th>
-                <th className="py-3 px-4 text-left">Disease Name</th>
-                <th className="py-3 px-4 text-left">Description</th>
-                <th className="py-3 px-4 text-center">Actions</th>
+                <th className="py-3 px-4 text-left">ชื่อโรค</th>
+                <th className="py-3 px-4 text-left">รายละเอียด</th>
+                <th className="py-3 px-4 text-center">การกระทำ</th>
               </tr>
             </thead>
             <tbody>
@@ -134,7 +133,7 @@ const Disease = () => {
                       onClick={() => handleDelete(disease.condition_id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105"
                     >
-                      Delete
+                      ลบ
                     </button>
                   </td>
                 </tr>

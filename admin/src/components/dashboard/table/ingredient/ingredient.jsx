@@ -102,14 +102,14 @@ const Ingredients = () => {
   const handleDelete = (id) => {
     console.log("Attempting to delete ID:", id); // Log ID for debugging
     Swal.fire({
-      title: "Are you sure?",
-      text: "You will not be able to recover this data!",
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "ใช่, ลบเลย!",
+      cancelButtonText: "ยกเลิก",
     }).then((result) => {
       if (result.isConfirmed) {
         axios
@@ -154,67 +154,67 @@ const Ingredients = () => {
           <!-- Nutrition Information Grid -->
           <div class="grid grid-cols-2 gap-4 w-full">
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Calories:</strong> ${
+              <p class="text-sm text-gray-600"><strong>แคลอรี่:</strong> ${
                 ingredient.calories
-              } kcal</p>
+              } แคลอรี่</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Quantity:</strong> ${
+              <p class="text-sm text-gray-600"><strong>ปริมาณ:</strong> ${
                 ingredient.quantity_per_unit
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Protein:</strong> ${
+              <p class="text-sm text-gray-600"><strong>โปรตีน:</strong> ${
                 ingredient.protien
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Fat:</strong> ${
+              <p class="text-sm text-gray-600"><strong>ไขมัน:</strong> ${
                 ingredient.fat
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Carbs:</strong> ${
+              <p class="text-sm text-gray-600"><strong>คาร์โบไฮเดรต:</strong> ${
                 ingredient.carbohydrates
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Fiber:</strong> ${
+              <p class="text-sm text-gray-600"><strong>ไฟเบอร์:</strong> ${
                 ingredient.dietary_fiber
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Calcium:</strong> ${
+              <p class="text-sm text-gray-600"><strong>แคลเซียม:</strong> ${
                 ingredient.calcium
-              }mg</p>
+              } มิลลิกรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Iron:</strong> ${
+              <p class="text-sm text-gray-600"><strong>เหล็ก:</strong> ${
                 ingredient.iron
-              }mg</p>
+              } มิลลิกรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Vitamin C:</strong> ${
+              <p class="text-sm text-gray-600"><strong>วิตามินซี:</strong> ${
                 ingredient.vitamin_c
-              }mg</p>
+              } มิลิกรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Sodium:</strong> ${
+              <p class="text-sm text-gray-600"><strong>โซเดียม:</strong> ${
                 ingredient.sodium
-              }mg</p>
+              } มิลลิกรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Sugar:</strong> ${
+              <p class="text-sm text-gray-600"><strong>น้ำตาล:</strong> ${
                 ingredient.sugar
-              }g</p>
+              } กรัม</p>
             </div>
             <div class="bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Cholesterol:</strong> ${
+              <p class="text-sm text-gray-600"><strong>คอเลสเตอรอล:</strong> ${
                 ingredient.cholesterol
-              }mg</p>
+              } มิลิกรัม</p>
             </div>
             <div class="col-span-2 bg-gray-100 p-3 rounded-lg shadow-sm text-center">
-              <p class="text-sm text-gray-600"><strong>Created At:</strong> ${new Date(
+              <p class="text-sm text-gray-600"><strong>สร้างเมื่อวันที่:</strong> ${new Date(
                 ingredient.created_at
               ).toLocaleDateString()}</p>
             </div>
@@ -223,7 +223,7 @@ const Ingredients = () => {
       `,
       showCloseButton: true,
       confirmButtonColor: "#3085d6",
-      confirmButtonText: "Close",
+      confirmButtonText: "ปิด",
       customClass: {
         popup: "rounded-lg p-6 max-w-3xl", // Limit the width of the popup
       },
@@ -239,14 +239,14 @@ const Ingredients = () => {
       <div className="flex-1 p-8">
         <Navbar toggleSidebar={toggleSidebar} />
         <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
-          Ingredients List
+          รายการวัตถุดิบ
         </h1>
 
         {/* Search Box */}
         <div className="flex justify-between mb-6">
           <input
             type="text"
-            placeholder="Search for ingredients"
+            placeholder="ค้นหาชื่อวัตถุดิบ"
             className="w-full max-w-lg px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
             value={searchTerm}
             onChange={handleSearch}
@@ -260,10 +260,10 @@ const Ingredients = () => {
             <thead>
               <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                 <th className="py-4 px-6 text-left">#</th>
-                <th className="py-4 px-6 text-left">Image</th>
-                <th className="py-4 px-6 text-left">Name</th>
-                <th className="py-4 px-6 text-left">Calories</th>
-                <th className="py-4 px-6 text-center">Actions</th>
+                <th className="py-4 px-6 text-left">รูปภาพ</th>
+                <th className="py-4 px-6 text-left">ชื่อวัตถุดิบ</th>
+                <th className="py-4 px-6 text-left">แคลอรี่</th>
+                <th className="py-4 px-6 text-center">การจัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -289,7 +289,7 @@ const Ingredients = () => {
                       onClick={() => handleViewDetails(ingredient)}
                       className="bg-blue-400 hover:bg-blue-500 text-white px-3 py-1 rounded-full mr-2 shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105"
                     >
-                      View
+                      ดูเพิ่มเติม
                     </button>
                     <IngredientEdit
                       ingredient={ingredient}
@@ -299,7 +299,7 @@ const Ingredients = () => {
                       onClick={() => handleDelete(ingredient.ingredient_id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105"
                     >
-                      Delete
+                      ลบ
                     </button>
                   </td>
                 </tr>
@@ -315,7 +315,7 @@ const Ingredients = () => {
             disabled={currentPage === 1}
             className="px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition duration-300 disabled:opacity-50"
           >
-            Previous
+            หน้าก่อนหน้า
           </button>
           {getPageNumbers().map((pageNumber, index) => (
             <button
@@ -338,7 +338,7 @@ const Ingredients = () => {
             disabled={currentPage === totalPages}
             className="px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition duration-300 disabled:opacity-50"
           >
-            Next
+            หน้าต่อไป
           </button>
         </div>
       </div>
