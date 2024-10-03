@@ -102,7 +102,10 @@ const Sidebar = ({ isSidebarOpen }) => {
                 onClick={() => setIsTableMenuOpen(!isTableMenuOpen)}
                 className={`flex items-center justify-between space-x-4 py-2.5 px-4 w-full rounded-lg transition duration-300 transform hover:scale-105 ${
                   location.pathname.includes("/table") ||
-                  location.pathname.includes("/foodmenu")
+                  location.pathname.includes("/foodmenu") ||
+                  location.pathname.includes("/ingredients") ||
+                  location.pathname.includes("/disease") ||
+                  location.pathname.includes("/foodcategories")
                     ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg"
                     : "bg-gradient-to-r from-transparent to-transparent hover:from-yellow-300 hover:to-yellow-500 hover:text-white hover:shadow-md"
                 }`}
@@ -124,9 +127,12 @@ const Sidebar = ({ isSidebarOpen }) => {
               {/* Submenu of Table */}
               {(isTableMenuOpen ||
                 location.pathname.includes("/table") ||
-                location.pathname.includes("/foodmenu")) &&
+                location.pathname.includes("/foodmenu") ||
+                location.pathname.includes("/ingredients") ||
+                location.pathname.includes("/disease") ||
+                location.pathname.includes("/foodcategories")) &&
                 isSidebarOpen && (
-                  <ul className="ml-4 mt-2 space-y-2 border-l-4 border-yellow-400  pl-4">
+                  <ul className="ml-4 mt-2 space-y-2 border-l-4 border-yellow-400 pl-4">
                     <li className="mb-2">
                       <Link
                         to="/foodmenu"
@@ -142,9 +148,22 @@ const Sidebar = ({ isSidebarOpen }) => {
                     </li>
                     <li className="mb-2">
                       <Link
-                        to="/table/ingredient"
+                        to="/foodcategories"
                         className={`flex items-center space-x-3 py-2 px-3 rounded-lg transition duration-300 ${
-                          location.pathname === "/table/ingredient"
+                          location.pathname === "/foodcategories"
+                            ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-inner"
+                            : "hover:bg-gradient-to-r hover:from-purple-400 hover:to-purple-500 hover:text-white"
+                        }`}
+                      >
+                        <span>📂</span>
+                        <span>Food Categories</span>
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link
+                        to="/ingredients"
+                        className={`flex items-center space-x-3 py-2 px-3 rounded-lg transition duration-300 ${
+                          location.pathname === "/ingredients"
                             ? "bg-gradient-to-r from-green-400 to-teal-500 text-white shadow-inner"
                             : "hover:bg-gradient-to-r hover:from-green-300 hover:to-teal-400 hover:text-white"
                         }`}
@@ -155,9 +174,9 @@ const Sidebar = ({ isSidebarOpen }) => {
                     </li>
                     <li className="mb-2">
                       <Link
-                        to="/table/disease"
+                        to="/disease"
                         className={`flex items-center space-x-3 py-2 px-3 rounded-lg transition duration-300 ${
-                          location.pathname === "/table/disease"
+                          location.pathname === "/disease"
                             ? "bg-gradient-to-r from-red-400 to-pink-500 text-white shadow-inner"
                             : "hover:bg-gradient-to-r hover:from-red-300 hover:to-pink-400 hover:text-white"
                         }`}

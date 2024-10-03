@@ -1,0 +1,85 @@
+import React from "react";
+import Swal from "sweetalert2";
+import axios from "axios";
+
+const DiseaseAdd = ({ onAdd }) => {
+  // Handle the form submission
+  const handleAddDisease = async (name, description) => {
+    if (!name) {
+      Swal.fire("Error", "Please provide a disease name", "error");
+      return;
+    }
+
+    try {
+      // Call API to add a new disease
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL_GET_DISEASES}`,
+        {
+          condition_name: name,
+          condition_description: description,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        Swal.fire("Success", "Disease added successfully", "success").then(
+          () => {
+            // Close the popup and refresh the list
+            onAdd();
+          }
+        );
+      } else {
+        Swal.fire("Error", "Failed to add disease", "error");
+      }
+    } catch (error) {
+      Swal.fire("Error", "An error occurred while adding the disease", "error");
+    }
+  };
+
+  // Display the form in a popup using SweetAlert2
+  const showAddDiseasePopup = () => {
+    Swal.fire({
+      title: "<h2 class='text-lg font-semibold'>Add New Disease</h2>",
+      html: `
+        <div class="flex flex-col gap-4">
+          <input id="disease-name" class="swal2-input px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Disease Name" />
+          <textarea id="disease-description" class="swal2-textarea px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Disease Description"></textarea>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: "#4CAF50",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Add",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        const name = Swal.getPopup().querySelector("#disease-name").value;
+        const description = Swal.getPopup().querySelector(
+          "#disease-description"
+        ).value;
+        if (!name) {
+          Swal.showValidationMessage("Please enter the disease name");
+        }
+        return { name: name, description: description };
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleAddDisease(result.value.name, result.value.description);
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={showAddDiseasePopup}
+      className="bg-gradient-to-r from-green-400 to-green-600 text-white px-6 py-2 rounded-full hover:from-green-500 hover:to-green-700 transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+    >
+      + Add Disease
+    </button>
+  );
+};
+
+export default DiseaseAdd;

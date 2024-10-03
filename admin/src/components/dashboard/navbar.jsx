@@ -24,6 +24,12 @@ const Navbar = ({ toggleSidebar }) => {
         return "User Management";
       case "/foodmenu":
         return "FoodMenu Management";
+      case "/foodcategories":
+        return "Ingredients Management";
+      case "/ingredients":
+        return "Ingredient Management";
+      case "/disease":
+        return "Disease Management";
       case "/settings":
         return "Settings";
       default:

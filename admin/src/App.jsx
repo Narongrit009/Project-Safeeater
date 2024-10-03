@@ -9,6 +9,9 @@ import LoginAdmin from "./components/login/login_admin.jsx";
 import DashboardPage from "./components/dashboard/dashboard_page.jsx";
 import Users from "./components/dashboard/user/users.jsx"; // นำเข้า Users component
 import FoodMenuByCategory from "./components/dashboard/table/foodmenu/food_menu.jsx"; // นำเข้า Users component
+import Disease from "./components/dashboard/table/disease/disease.jsx"; // นำเข้า Users component
+import FoodCategories from "./components/dashboard/table/categories/foodcategories.jsx"; // นำเข้า Users component
+import Ingredients from "./components/dashboard/table/ingredient/ingredient.jsx"; // นำเข้า Users component
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,6 +50,18 @@ function App() {
           element={
             isAuthenticated ? <FoodMenuByCategory /> : <Navigate to="/" />
           }
+        />
+        <Route
+          path="/disease"
+          element={isAuthenticated ? <Disease /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/foodcategories"
+          element={isAuthenticated ? <FoodCategories /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/ingredients"
+          element={isAuthenticated ? <Ingredients /> : <Navigate to="/" />}
         />
       </Routes>
     </Router>
