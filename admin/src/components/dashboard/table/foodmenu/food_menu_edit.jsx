@@ -187,7 +187,7 @@ const FoodMenuEdit = () => {
       related_conditions: selectedRelatedConditions, // ส่งข้อมูล id ของโรคที่เกี่ยวข้อง
     };
 
-    console.log("Data to be sent:", formData);
+    // console.log("Data to be sent:", formData);
 
     try {
       await axios.put(
