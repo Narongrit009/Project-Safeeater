@@ -12,6 +12,9 @@ import FoodMenuByCategory from "./components/dashboard/table/foodmenu/food_menu.
 import Disease from "./components/dashboard/table/disease/disease.jsx"; // นำเข้า Users component
 import FoodCategories from "./components/dashboard/table/categories/foodcategories.jsx"; // นำเข้า Users component
 import Ingredients from "./components/dashboard/table/ingredient/ingredient.jsx"; // นำเข้า Users component
+import FoodMenuAdd from "./components/dashboard/table/foodmenu/food_menu_add.jsx"; // นำเข้า Users component
+import FoodMenuEdit from "./components/dashboard/table/foodmenu/food_menu_edit.jsx"; // นำเข้า Users component
+import FoodMenuDetail from "./components/dashboard/table/foodmenu/food_menu_detail.jsx"; // นำเข้า Users component
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,6 +54,13 @@ function App() {
             isAuthenticated ? <FoodMenuByCategory /> : <Navigate to="/" />
           }
         />
+        <Route
+          path="/food-menu-add"
+          element={isAuthenticated ? <FoodMenuAdd /> : <Navigate to="/" />}
+        />
+        <Route path="/edit-menu/:menuId" element={<FoodMenuEdit />} />
+        <Route path="/menu-detail/:menuId" element={<FoodMenuDetail />} />
+
         <Route
           path="/disease"
           element={isAuthenticated ? <Disease /> : <Navigate to="/" />}

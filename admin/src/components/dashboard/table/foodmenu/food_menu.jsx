@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../../sidebar.jsx";
 import Navbar from "../../navbar.jsx";
+import { useNavigate } from "react-router-dom";
 
 const FoodMenuByCategory = () => {
   const [foodItems, setFoodItems] = useState([]);
@@ -11,6 +12,8 @@ const FoodMenuByCategory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 8;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // สถานะเปิด/ปิด Sidebar
+
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -36,6 +39,10 @@ const FoodMenuByCategory = () => {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1); // รีเซ็ตไปยังหน้าแรกเมื่อมีการค้นหาใหม่
+  };
+
+  const handleEdit = (menuId) => {
+    navigate(`/edit-menu/${menuId}`); // เปลี่ยนเส้นทางไปยังหน้าแก้ไขเมนู
   };
 
   // กรองรายการอาหารตามคำค้นหา
@@ -69,6 +76,16 @@ const FoodMenuByCategory = () => {
         <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-800">
           เมนูอาหาร
         </h1>
+
+        {/* ปุ่มเพิ่มเมนูอาหาร */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => navigate("/food-menu-add")}
+            className="bg-gradient-to-r from-green-400 to-green-600 text-white px-6 py-2 rounded-full hover:bg-gradient-to-r hover:from-green-500 hover:to-green-700 transition duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl"
+          >
+            + เพิ่มเมนูอาหาร
+          </button>
+        </div>
 
         {/* กล่องค้นหา */}
         <div className="flex justify-center mb-8">
@@ -117,9 +134,19 @@ const FoodMenuByCategory = () => {
                   <strong>สร้างเมื่อ:</strong>{" "}
                   {new Date(item.created_at).toLocaleDateString()}
                 </p>
+                {/* ปุ่มแก้ไข */}
+                <button
+                  onClick={() => handleEdit(item.menu_id)}
+                  className="mt-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-4 py-2 rounded-full hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-700 transition duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl"
+                >
+                  แก้ไข
+                </button>
 
                 {/* ปุ่มดูรายละเอียด */}
-                <button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full hover:from-blue-600 hover:to-purple-600 transition duration-300 transform hover:scale-105 shadow-lg">
+                <button
+                  onClick={() => navigate(`/menu-detail/${item.menu_id}`)}
+                  className="mt-4 bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-2 rounded-full hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-700 transition duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl"
+                >
                   ดูรายละเอียด
                 </button>
               </div>

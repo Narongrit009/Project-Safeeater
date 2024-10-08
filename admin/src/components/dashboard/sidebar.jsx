@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"; // นำเข้า useParams
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Swal from "sweetalert2";
 import {
@@ -15,6 +15,7 @@ import {
 const Sidebar = ({ isSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { menuId } = useParams(); // ใช้ useParams เพื่อดึง menuId จาก URL (ถ้ามี)
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -103,6 +104,9 @@ const Sidebar = ({ isSidebarOpen }) => {
                 className={`flex items-center justify-between space-x-4 py-2.5 px-4 w-full rounded-lg transition duration-300 transform hover:scale-105 ${
                   location.pathname.includes("/table") ||
                   location.pathname.includes("/foodmenu") ||
+                  location.pathname.includes("/food-menu-add") ||
+                  location.pathname.includes("/edit-menu") ||
+                  location.pathname.includes("/menu-detail") ||
                   location.pathname.includes("/ingredients") ||
                   location.pathname.includes("/disease") ||
                   location.pathname.includes("/foodcategories")
@@ -128,6 +132,9 @@ const Sidebar = ({ isSidebarOpen }) => {
               {(isTableMenuOpen ||
                 location.pathname.includes("/table") ||
                 location.pathname.includes("/foodmenu") ||
+                location.pathname.includes("/food-menu-add") ||
+                location.pathname.includes("/edit-menu") ||
+                location.pathname.includes("/menu-detail") ||
                 location.pathname.includes("/ingredients") ||
                 location.pathname.includes("/disease") ||
                 location.pathname.includes("/foodcategories")) &&
@@ -137,7 +144,10 @@ const Sidebar = ({ isSidebarOpen }) => {
                       <Link
                         to="/foodmenu"
                         className={`flex items-center space-x-3 py-2 px-3 rounded-lg transition duration-300 ${
-                          location.pathname === "/foodmenu"
+                          location.pathname === "/foodmenu" ||
+                          location.pathname === `/edit-menu/${menuId}` ||
+                          location.pathname === `/menu-detail/${menuId}` ||
+                          location.pathname === "/food-menu-add"
                             ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-inner"
                             : "hover:bg-gradient-to-r hover:from-yellow-400 hover:to-orange-400 hover:text-white"
                         }`}

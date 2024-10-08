@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { useLocation } from "react-router-dom"; // นำเข้า useLocation
+import { useLocation, useParams } from "react-router-dom"; // เพิ่ม useParams
+import axios from "axios"; // สำหรับดึงข้อมูลเมนูจาก API
 
 const Navbar = ({ toggleSidebar }) => {
   const [email, setEmail] = useState("");
-  const location = useLocation(); // ใช้สำหรับตรวจสอบเส้นทางปัจจุบัน
+  const [menuName, setMenuName] = useState(""); // สำหรับเก็บชื่อเมนู
+  const location = useLocation();
+  const { menuId } = useParams(); // ใช้ดึง menuId จาก URL (ถ้ามี)
 
   // ดึงค่า email จาก localStorage เมื่อคอมโพเนนต์ถูกโหลด
   useEffect(() => {
@@ -14,6 +17,27 @@ const Navbar = ({ toggleSidebar }) => {
       setEmail(storedEmail);
     }
   }, []);
+
+  // ดึงชื่อเมนูจาก API เมื่อเป็นการแก้ไขเมนู
+  useEffect(() => {
+    if (menuId) {
+      const fetchMenuName = async () => {
+        try {
+          const response = await axios.get(
+            `${
+              import.meta.env.VITE_API_URL_GET_FOOD_MENU_DETAIL
+            }?menu_id=${menuId}`
+          );
+          setMenuName(response.data.data.menu_name || "ไม่พบชื่อเมนู");
+        } catch (error) {
+          console.error("Error fetching menu name:", error);
+          setMenuName("ไม่พบชื่อเมนู");
+        }
+      };
+
+      fetchMenuName();
+    }
+  }, [menuId]);
 
   // ฟังก์ชันตรวจสอบเมนูที่เลือกจากเส้นทางปัจจุบัน
   const getMenuTitle = () => {
@@ -24,6 +48,12 @@ const Navbar = ({ toggleSidebar }) => {
         return "การจัดการผู้ใช้";
       case "/foodmenu":
         return "การจัดการเมนูอาหาร";
+      case "/food-menu-add":
+        return "เพิ่มเมนูอาหาร";
+      case `/edit-menu/${menuId}`: // แสดงชื่อเมนูถ้ามี menuId
+        return `แก้ไขเมนู: ${menuName}`;
+      case `/menu-detail/${menuId}`: // แสดงชื่อเมนูถ้ามี menuId
+        return `รายละเอียดเมนู`;
       case "/foodcategories":
         return "การจัดการประเภทอาหาร";
       case "/ingredients":
