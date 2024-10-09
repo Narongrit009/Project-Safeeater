@@ -118,7 +118,7 @@ const DashboardPage = () => {
 
         <div className="p-8 space-y-8">
           <header className="flex justify-between items-center mb-10">
-            <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
               ยินดีต้อนรับสู่แดชบอร์ด 👋
             </h1>
           </header>
