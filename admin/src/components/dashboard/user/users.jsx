@@ -38,9 +38,11 @@ const Users = () => {
 
   // Filter search results
   const filteredUsers = users.filter((user) => {
+    const username = user.username ? user.username.toLowerCase() : "";
+    const email = user.email ? user.email.toLowerCase() : "";
     return (
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      username.includes(searchTerm.toLowerCase()) ||
+      email.includes(searchTerm.toLowerCase())
     );
   });
 
