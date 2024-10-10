@@ -22,11 +22,19 @@ if (isset($data['email']) && !empty($data['email'])) {
             SELECT uhc.condition_id
             FROM users_health_conditions uhc
             LEFT JOIN users ON uhc.user_id = users.user_id
-            WHERE email = ?
+            WHERE users.email = ?
+        )
+        AND fm.menu_id NOT IN (
+            SELECT fm.menu_id
+            FROM food_menu fm
+            LEFT JOIN menu_nutritional_information mni ON fm.menu_id = mni.menu_id
+            LEFT JOIN users_allergies ua ON mni.ingredient_id = ua.nutrition_id
+            LEFT JOIN users u ON ua.user_id = u.user_id
+            WHERE u.email = ?
         );
     ");
 
-    $user_query->bind_param("s", $email);
+    $user_query->bind_param("ss", $email, $email);
     $user_query->execute();
     $result = $user_query->get_result();
 
