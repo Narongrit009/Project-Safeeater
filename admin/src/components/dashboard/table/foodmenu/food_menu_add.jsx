@@ -84,8 +84,33 @@ const FoodMenuAdd = () => {
     );
   };
 
-  // ฟังก์ชันจัดการการเลือกโรคที่เกี่ยวข้อง
   const handleRelatedConditionChange = (conditionId) => {
+    const selectedCondition = healthConditions.find(
+      (c) => c.condition_id === conditionId
+    );
+
+    // ตรวจสอบว่า "ไม่มี" สามารถเลือกซ้ำได้
+    if (selectedCondition.condition_name === "ไม่มี") {
+      setSelectedRelatedConditions((prevSelected) => {
+        if (prevSelected.includes(conditionId)) {
+          return prevSelected.filter((item) => item !== conditionId);
+        } else {
+          return [...prevSelected, conditionId];
+        }
+      });
+      return;
+    }
+
+    // ไม่ให้เลือกซ้ำกับ "เหมาะสมกับโรค"
+    if (healthCondition === conditionId) {
+      Swal.fire({
+        icon: "warning",
+        title: "เลือกโรคซ้ำกัน",
+        text: "คุณไม่สามารถเลือกโรคนี้ได้ในทั้งสองตำแหน่ง",
+      });
+      return;
+    }
+
     setSelectedRelatedConditions((prevSelected) => {
       if (prevSelected.includes(conditionId)) {
         return prevSelected.filter((item) => item !== conditionId);
@@ -93,6 +118,31 @@ const FoodMenuAdd = () => {
         return [...prevSelected, conditionId];
       }
     });
+  };
+
+  const handleHealthConditionChange = (e) => {
+    const conditionId = e.target.value;
+    const selectedCondition = healthConditions.find(
+      (c) => c.condition_id === parseInt(conditionId)
+    );
+
+    // ตรวจสอบว่า "ไม่มี" สามารถเลือกซ้ำได้
+    if (selectedCondition.condition_name === "ไม่มี") {
+      setHealthCondition(conditionId);
+      return;
+    }
+
+    // ไม่ให้เลือกซ้ำกับ "เลือกโรคที่เกี่ยวข้อง"
+    if (selectedRelatedConditions.includes(parseInt(conditionId))) {
+      Swal.fire({
+        icon: "warning",
+        title: "เลือกโรคซ้ำกัน",
+        text: "คุณไม่สามารถเลือกโรคนี้ได้ในทั้งสองตำแหน่ง",
+      });
+      return;
+    }
+
+    setHealthCondition(conditionId);
   };
 
   // ฟังก์ชันลบโรคที่เลือก
@@ -236,7 +286,7 @@ const FoodMenuAdd = () => {
                 className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
                 required
               >
-                <option value="">-- เลือกโรคที่เหมาะสม --</option>
+                <option value="">-- เลือกโรคที่เหมาะสมกับอาหาร --</option>
                 {healthConditions.map((condition) => (
                   <option
                     key={condition.condition_id}
@@ -252,7 +302,7 @@ const FoodMenuAdd = () => {
           {/* ส่วนเลือกโรคที่เกี่ยวข้อง */}
           <div className="mb-10">
             <label className="block text-xl text-gray-700 mb-3">
-              โรคที่เกี่ยวข้อง:
+              โรคที่เกี่ยวข้องกับอาหาร:
             </label>
             <div className="p-4 border rounded-lg bg-gray-100 flex flex-wrap gap-3">
               {selectedRelatedConditions.length > 0 ? (
@@ -285,7 +335,7 @@ const FoodMenuAdd = () => {
 
           <div className="mb-10">
             <label className="block text-xl text-gray-700 mb-5">
-              เลือกโรคที่เกี่ยวข้อง:
+              เลือกโรคที่เกี่ยวข้องกับอาหาร:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-h-96 overflow-y-auto">
               {healthConditions.map((condition) => (

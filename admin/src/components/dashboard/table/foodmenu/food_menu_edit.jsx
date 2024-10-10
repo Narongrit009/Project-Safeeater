@@ -138,7 +138,60 @@ const FoodMenuEdit = () => {
     );
   };
 
+  // ฟังก์ชันจัดการการเลือกโรคที่เหมาะสม
+  const handleHealthConditionChange = (e) => {
+    const conditionId = e.target.value;
+    const selectedCondition = healthConditions.find(
+      (c) => c.condition_id === parseInt(conditionId)
+    );
+
+    // ตรวจสอบว่า "ไม่มี" สามารถเลือกซ้ำได้
+    if (selectedCondition.condition_name === "ไม่มี") {
+      setHealthCondition(conditionId);
+      return;
+    }
+
+    // ไม่ให้เลือกซ้ำกับ "เลือกโรคที่เกี่ยวข้อง"
+    if (selectedRelatedConditions.includes(parseInt(conditionId))) {
+      Swal.fire({
+        icon: "warning",
+        title: "เลือกโรคซ้ำกัน",
+        text: "คุณไม่สามารถเลือกโรคนี้ได้ในทั้งสองตำแหน่ง",
+      });
+      return;
+    }
+
+    setHealthCondition(conditionId);
+  };
+
+  // ฟังก์ชันจัดการการเลือกโรคที่เกี่ยวข้อง
   const handleRelatedConditionChange = (conditionId) => {
+    const selectedCondition = relatedConditions.find(
+      (c) => c.condition_id === conditionId
+    );
+
+    // ตรวจสอบว่า "ไม่มี" สามารถเลือกซ้ำได้
+    if (selectedCondition.condition_name === "ไม่มี") {
+      setSelectedRelatedConditions((prevSelected) => {
+        if (prevSelected.includes(conditionId)) {
+          return prevSelected.filter((item) => item !== conditionId);
+        } else {
+          return [...prevSelected, conditionId];
+        }
+      });
+      return;
+    }
+
+    // ไม่ให้เลือกซ้ำกับ "เหมาะสมกับโรค"
+    if (healthCondition === conditionId) {
+      Swal.fire({
+        icon: "warning",
+        title: "เลือกโรคซ้ำกัน",
+        text: "คุณไม่สามารถเลือกโรคนี้ได้ในทั้งสองตำแหน่ง",
+      });
+      return;
+    }
+
     setSelectedRelatedConditions((prevSelected) => {
       if (prevSelected.includes(conditionId)) {
         return prevSelected.filter((item) => item !== conditionId);
