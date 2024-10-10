@@ -96,6 +96,7 @@ flutter:
     - animations/dashboard.json
     - animations/logout.json
     - animations/alert.json
+    - animations/alert2.json
     - animations/insert_history.json
     - animations/delete.json
     - animations/analyze.json

@@ -366,7 +366,7 @@ class _UserProfileStep2State extends State<UserProfileStep2> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'แพ้อาหาร',
+          'วัตถุดิบที่แพ้',
           style: TextStyle(
             color: Colors.black,
             fontSize: 16.0,
@@ -381,7 +381,7 @@ class _UserProfileStep2State extends State<UserProfileStep2> {
               TextField(
                 controller: controller,
                 decoration: InputDecoration(
-                  hintText: 'กรอกชื่ออาหารที่แพ้',
+                  hintText: 'กรอกชื่อวัตถุดิบที่แพ้',
                   suffixIcon: IconButton(
                     icon: Icon(Icons.add),
                     onPressed: _addFoodAllergyField,

@@ -113,6 +113,7 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
               hasAllergyConflict = true;
               matchingAllergen = allergen;
             });
+            _showAllergyAlertDialog(allergen); // แสดงป๊อปอัพแจ้งเตือน
             break;
           }
         }
@@ -360,6 +361,82 @@ class _AnalyzeDetailsPageState extends State<AnalyzeDetailsPage> {
                 ],
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAllergyAlertDialog(String allergen) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // ป้องกันการปิด dialog โดยการกดนอกกรอบ
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // มุมกลมที่นุ่มนวลขึ้น
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0), // เพิ่มพื้นที่ภายใน
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // อนิเมชัน Lottie ที่เล่นวน
+                Lottie.asset(
+                  'animations/alert2.json', // ไฟล์อนิเมชันที่ต้องการแสดง
+                  width: 150,
+                  height: 150,
+                  repeat: true, // เล่นวนซ้ำ
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'คำเตือนการแพ้!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22.0,
+                    color: Colors.redAccent, // สีของข้อความเตือน
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'จานนี้มีส่วนผสมของ $allergen ซึ่งเป็นวัตถุดิบที่คุณแพ้ กรุณาหลีกเลี่ยงการบริโภค',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.grey[800], // สีข้อความที่อ่านง่าย
+                    height: 1.5, // เพิ่มความสูงระหว่างบรรทัด
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 32),
+                // ปุ่มที่มีดีไซน์เรียบง่าย
+                SizedBox(
+                  width: double.infinity, // ปุ่มกว้างเต็มพื้นที่
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // ปิดป๊อปอัพ
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      backgroundColor: Colors.redAccent, // สีปุ่มให้เข้ากับธีม
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      elevation: 4, // เพิ่มเงาเบา ๆ ให้ปุ่ม
+                    ),
+                    child: Text(
+                      'รับทราบ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
