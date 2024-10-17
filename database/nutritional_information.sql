@@ -14,7 +14,7 @@
  Date: 23/09/2024 18:56:40
 */
 
-SET NAMES utf8mb4;
+SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
@@ -39,7 +39,7 @@ CREATE TABLE `nutritional_information`  (
   `image_url` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT 'ลิ้งรูปภาพ',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp COMMENT 'สร้างเมื่อวันที่',
   PRIMARY KEY (`ingredient_id`) USING BTREE,
-  UNIQUE INDEX `ingredient_id`(`ingredient_id` ASC) USING BTREE COMMENT 'index รหัสวัตถุดิบ'
+  UNIQUE INDEX `ingredient_id`(`ingredient_id` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = 'ตารางเก็บข้อมูลโภชนาการ' ROW_FORMAT = Dynamic;
 
 -- ----------------------------

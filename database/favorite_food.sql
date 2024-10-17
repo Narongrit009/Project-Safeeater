@@ -14,21 +14,20 @@
  Date: 23/09/2024 18:57:55
 */
 
-SET NAMES utf8mb4;
+SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for favorite_food
 -- ----------------------------
-DROP TABLE IF EXISTS `favorite_food`;
-CREATE TABLE `favorite_food`  (
+CREATE TABLE `favorite_food` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `food_id` int NULL DEFAULT NULL,
   `menu_id` int NULL DEFAULT NULL,
   `is_favorite` enum('true','false') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_favorite_food_user_id`(`user_id` ASC) USING BTREE,
   INDEX `idx_favorite_food_food_id`(`food_id` ASC) USING BTREE,
@@ -36,7 +35,11 @@ CREATE TABLE `favorite_food`  (
   CONSTRAINT `favorite_food_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `favorite_food_ibfk_2` FOREIGN KEY (`food_id`) REFERENCES `food_menu` (`menu_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `favorite_food_ibfk_3` FOREIGN KEY (`menu_id`) REFERENCES `food_photo_menu` (`menu_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 537 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=537 CHARACTER SET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=Dynamic;
+
+
+
+
 
 -- ----------------------------
 -- Records of favorite_food

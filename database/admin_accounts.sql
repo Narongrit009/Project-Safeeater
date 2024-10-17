@@ -14,7 +14,7 @@
  Date: 11/10/2024 00:35:43
 */
 
-SET NAMES utf8mb4;
+SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
@@ -28,7 +28,7 @@ CREATE TABLE `admin_accounts`  (
   `full_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `status` enum('active','inactive') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL,
   PRIMARY KEY (`admin_id`) USING BTREE,
   UNIQUE INDEX `email`(`email` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
