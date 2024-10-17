@@ -26,8 +26,8 @@ try {
     // ส่งคำร้องขอไปยัง API เพื่อทำการตรวจสอบ OTP
     $response = $client->post('https://otp.thaibulksms.com/v2/otp/verify', [
         'form_params' => [
-            'key' => '1810927327004233', // ใช้ App Key ของคุณ
-            'secret' => '36c97e742c2a4e7eb05a850ac88b396e', // ใช้ App Secret ของคุณ
+            'key' => '1813135969829444', // ใช้ App Key ของคุณ
+            'secret' => '12a43021c2b93df3cdbefc1de8218504', // ใช้ App Secret ของคุณ
             'token' => $token, // ใช้ token จากการส่ง OTP
             'pin' => $otp, // ใช้ otp ที่ได้รับจากผู้ใช้
         ],

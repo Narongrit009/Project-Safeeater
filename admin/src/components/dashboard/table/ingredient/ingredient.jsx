@@ -126,8 +126,8 @@ const Ingredients = () => {
               )
             );
             Swal.fire(
-              "Deleted!",
-              "The ingredient has been deleted.",
+              "ลบข้อมูลสำเร็จ!",
+              "ข้อมูลวัตถุดิบของคุณถูกลบเรียบร้อยแล้ว.",
               "success"
             );
           })
